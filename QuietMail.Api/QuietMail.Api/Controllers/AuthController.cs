@@ -7,6 +7,7 @@ namespace QuietMail.Api.Controllers;
 
 
 [ApiController]
+[Route("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;

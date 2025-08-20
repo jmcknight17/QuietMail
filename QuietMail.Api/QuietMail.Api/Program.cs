@@ -10,6 +10,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddControllers();
 
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -32,6 +34,5 @@ app.UseCors(builder =>
 
 app.MapControllers();
 
-app.UseCors();
 
 app.Run();
