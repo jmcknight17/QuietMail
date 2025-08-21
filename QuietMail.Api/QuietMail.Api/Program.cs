@@ -12,6 +12,10 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors();
 
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddSession();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -33,6 +37,8 @@ app.UseCors(builder =>
            .AllowCredentials());
 
 app.MapControllers();
+
+app.UseSession();
 
 
 app.Run();

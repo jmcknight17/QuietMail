@@ -2,13 +2,15 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Services;
+using Google.Apis.Gmail.v1;
 
 namespace QuietMail.Api.Controllers;
 
 
 [ApiController]
 [Route("auth")]
-public class AuthController : ControllerBase
+public class AuthController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly GoogleAuthorizationCodeFlow _flow;
@@ -31,9 +33,14 @@ public class AuthController : ControllerBase
     [HttpGet("google")]
     public IActionResult GoogleLogin()
     {
-        var redirectUri = Url.Action(nameof(GoogleCallback), "Auth", null, Request.Scheme);
-        var authUrl = _flow.CreateAuthorizationCodeRequest(redirectUri).Build();
+        var state = Guid.NewGuid().ToString("N");
+        TempData["oauth_state"] = state;
         
+        var redirectUri = Url.Action(nameof(GoogleCallback), "Auth", null, protocol: Request.Scheme);
+        var request = _flow.CreateAuthorizationCodeRequest(redirectUri);
+        request.State = state;
+        var authUrl = request.Build();
+
         return Redirect(authUrl.AbsoluteUri);
     }
     
@@ -41,14 +48,35 @@ public class AuthController : ControllerBase
     [HttpGet("google/callback")]
     public async Task<IActionResult> GoogleCallback(string code, string state)
     {
+        var storedState = TempData["oauth_state"] as string;
+    
+        if (state != storedState)
+        {
+            return BadRequest("Invalid state parameter");
+        }
+    
         var redirectUri = Url.Action(nameof(GoogleCallback), "Auth", null, Request.Scheme);
         var token = await _flow.ExchangeCodeForTokenAsync(
             "userId",
             code,
             redirectUri,
             CancellationToken.None);
+    
+        var credential = new UserCredential(_flow, "userId", token);
+        var gmailService = new GmailService(new BaseClientService.Initializer
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = "QuietMail"
+        });
+
+        var request = gmailService.Users.Messages.List("me");
+        var response = await request.ExecuteAsync();
         
-        return Ok(new { message = "Successfully authenticated!", accessToken = token.AccessToken });
+        long? emailCount = response.ResultSizeEstimate;
+
+        // We now redirect back to the frontend with the correct data.
+        var frontendCallbackUrl = $"http://localhost:3000/auth/callback?accessToken={token.AccessToken}&emailCount={emailCount}";
+        return Redirect(frontendCallbackUrl);
     }
     
     
