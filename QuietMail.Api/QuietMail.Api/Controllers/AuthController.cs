@@ -14,7 +14,6 @@ public class AuthController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly GoogleAuthorizationCodeFlow _flow;
-    //Constructor with the codeFlow (The heart and soul of the OAuth2.0 dance)
     public AuthController(IConfiguration configuration)
     {
         _configuration = configuration;
@@ -25,7 +24,7 @@ public class AuthController : Controller
                 ClientId = _configuration["Google:ClientId"],
                 ClientSecret = _configuration["Google:ClientSecret"]
             },
-            Scopes = new []{"https://www.googleapis.com/auth/gmail.metadata"} 
+            Scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly"}
         });
     }
     
@@ -69,13 +68,23 @@ public class AuthController : Controller
             ApplicationName = "QuietMail"
         });
 
-        var request = gmailService.Users.Messages.List("me");
-        var response = await request.ExecuteAsync();
-        
-        long? emailCount = response.ResultSizeEstimate;
+        string? pageToken = null;
+        long inboxCount = 0;
 
-        // We now redirect back to the frontend with the correct data.
-        var frontendCallbackUrl = $"http://localhost:3000/auth/callback?accessToken={token.AccessToken}&emailCount={emailCount}";
+        do
+        {
+            var request = gmailService.Users.Messages.List("me");
+            request.LabelIds = new[] { "INBOX" };
+            request.PageToken = pageToken;
+            var response = await request.ExecuteAsync();
+
+            if (response.Messages != null)
+                inboxCount += response.Messages.Count;
+
+            pageToken = response.NextPageToken;
+        } while (pageToken != null);
+        
+        var frontendCallbackUrl = $"http://localhost:3000/dashboard?accessToken={token.AccessToken}&emailCount={inboxCount}";
         return Redirect(frontendCallbackUrl);
     }
     

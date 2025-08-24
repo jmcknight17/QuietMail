@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-QuietMail.EmailAnalysis.Service-a64bc2c8-6fd1-444a-9743-6d180422226b</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
+        <PackageReference Include="Google.Apis.Gmail.v1" Version="1.70.0.3833" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
+    </ItemGroup>
+</Project>

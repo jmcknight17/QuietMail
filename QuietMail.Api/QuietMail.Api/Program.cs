@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using QuietMail.EmailAnalysis.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddCors();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession();
+
+builder.Services.AddScoped<GmailAnalysisService>();
 
 var app = builder.Build();
 
