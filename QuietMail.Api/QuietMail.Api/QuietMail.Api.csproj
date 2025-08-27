@@ -12,6 +12,7 @@
         <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
         <PackageReference Include="Google.Apis.Gmail.v1" Version="1.70.0.3833" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
     </ItemGroup>
 

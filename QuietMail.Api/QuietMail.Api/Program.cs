@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using QuietMail.common.Hubs;
 using QuietMail.EmailAnalysis.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Services.AddCors();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<GmailAnalysisService>();
 
@@ -40,6 +43,8 @@ app.UseCors(builder =>
            .AllowCredentials());
 
 app.MapControllers();
+
+app.MapHub<ProgressHub>("/progressHub");
 
 app.UseSession();
 

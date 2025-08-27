@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using QuietMail.Api.Models;
 using QuietMail.EmailAnalysis.Service.Services;
 
 namespace QuietMail.Api.Controllers;
@@ -14,24 +15,21 @@ public class SenderAnalysisController : ControllerBase
         _gmailAnalysisService = gmailAnalysisService;
     }
     
-    [HttpGet("/gmail")]
-    public async Task<IActionResult> GetSenderAnalysis()
+    [HttpPost("/start-scan")]
+    public IActionResult StartScan([FromBody] ScanRequest request)
     {
-        if (!Request.Headers.TryGetValue("Authorization", out var authHeader))
+        if (!Request.Headers.TryGetValue("Authorization", out var authorization))
         {
-            return Unauthorized("Authorization header is missing.");
+            return Unauthorized("Missing Authorization header");
         }
-        
-        var accessToken = authHeader.ToString().Split(" ").Last();
-
+        var accessToken = authorization.ToString().Split(" ").Last();
         if (string.IsNullOrEmpty(accessToken))
         {
             return Unauthorized("Access token is missing.");
         }
-
-        var res = await _gmailAnalysisService.AnalyzeSendersAsync(accessToken);
-        return Ok(res);
-
+        _ = _gmailAnalysisService.AnalyzeSendersAsync(accessToken, request.ConnectionId);
+        
+        return Accepted();
     }
 
 }
