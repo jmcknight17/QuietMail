@@ -10,6 +10,17 @@
     <ItemGroup>
         <PackageReference Include="Google.Apis.Auth" Version="1.70.0" />
         <PackageReference Include="Google.Apis.Gmail.v1" Version="1.70.0.3833" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore.SignalR.Core">
+        <HintPath>..\..\..\..\..\..\.dotnet\packs\Microsoft.AspNetCore.App.Ref\9.0.8\ref\net9.0\Microsoft.AspNetCore.SignalR.Core.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\QuietMail.common\QuietMail.common.csproj" />
     </ItemGroup>
 </Project>
