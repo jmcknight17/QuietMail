@@ -1,11 +1,5 @@
 ﻿import * as signalR from "@microsoft/signalr";
-
-type ScanResult = {
-  sender: string;
-  totalEmails: number;
-  openedEmails: number;
-};
-
+import { ScanResult } from "../types/scanResult";
 export const startScan = (
   accessToken: string,
   onProgress: (progress: number) => void,
