@@ -53,39 +53,47 @@ public class AuthController : Controller
         {
             return BadRequest("Invalid state parameter");
         }
-    
-        var redirectUri = Url.Action(nameof(GoogleCallback), "Auth", null, Request.Scheme);
-        var token = await _flow.ExchangeCodeForTokenAsync(
-            "userId",
-            code,
-            redirectUri,
-            CancellationToken.None);
-    
-        var credential = new UserCredential(_flow, "userId", token);
-        var gmailService = new GmailService(new BaseClientService.Initializer
+
+        try
         {
-            HttpClientInitializer = credential,
-            ApplicationName = "QuietMail"
-        });
+            var redirectUri = Url.Action(nameof(GoogleCallback), "Auth", null, Request.Scheme);
+            var token = await _flow.ExchangeCodeForTokenAsync(
+                "userId",
+                code,
+                redirectUri,
+                CancellationToken.None);
+    
+            var credential = new UserCredential(_flow, "userId", token);
+            var gmailService = new GmailService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "QuietMail"
+            });
 
-        string? pageToken = null;
-        long inboxCount = 0;
+            string? pageToken = null;
+            long inboxCount = 0;
 
-        do
-        {
-            var request = gmailService.Users.Messages.List("me");
-            request.LabelIds = new[] { "INBOX" };
-            request.PageToken = pageToken;
-            var response = await request.ExecuteAsync();
+            do
+            {
+                var request = gmailService.Users.Messages.List("me");
+                request.LabelIds = new[] { "INBOX" };
+                request.PageToken = pageToken;
+                var response = await request.ExecuteAsync();
 
-            if (response.Messages != null)
-                inboxCount += response.Messages.Count;
+                if (response.Messages != null)
+                    inboxCount += response.Messages.Count;
 
-            pageToken = response.NextPageToken;
-        } while (pageToken != null);
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
         
-        var frontendCallbackUrl = $"http://localhost:3000/dashboard?accessToken={token.AccessToken}&emailCount={inboxCount}";
-        return Redirect(frontendCallbackUrl);
+            var frontendCallbackUrl = $"http://localhost:3000/dashboard?accessToken={token.AccessToken}&emailCount={inboxCount}";
+            return Redirect(frontendCallbackUrl);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
     
     
