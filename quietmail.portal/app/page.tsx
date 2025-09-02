@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, BarChart3, Shield, Zap } from "lucide-react"
+import Image from "next/image"
 
 export default function Home() {
   return (
@@ -28,8 +29,9 @@ export default function Home() {
 
           <div className="mb-12">
             <a href="http://localhost:5022/auth/google">
-              <Button size="lg" className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Mail className="mr-2 h-5 w-5" />
+              <Button size="lg" className="text-lg px-4 py-6 bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Image
+                      src="/google_login.png"  alt="Google Logo" width={30} height={18} className="mr-1"/>
                 Log into Gmail
               </Button>
             </a>
