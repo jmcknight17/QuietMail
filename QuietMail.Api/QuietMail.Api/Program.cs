@@ -21,6 +21,7 @@ builder.Services.AddSession();
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<GmailAnalysisService>();
+builder.Services.AddScoped<ManageInboxService>();
 
 var app = builder.Build();
 

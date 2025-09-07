@@ -44,7 +44,7 @@ public class GmailAnalysisService
                 countRequest.Q = "-label:chat";
                 countRequest.PageToken = pageTokenForCount;
 
-                var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                 var countResponse = await countRequest.ExecuteAsync(cancellationTokenSource.Token);
 
                 if (countResponse.Messages != null)

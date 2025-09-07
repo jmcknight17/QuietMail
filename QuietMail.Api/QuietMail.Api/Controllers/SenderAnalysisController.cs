@@ -8,7 +8,7 @@ namespace QuietMail.Api.Controllers;
 [Route("[controller]")]
 public class SenderAnalysisController : ControllerBase
 {
-    private GmailAnalysisService _gmailAnalysisService;
+    private GmailAnalysisService _gmailAnalysisService; // TODO: Make this a factory to support multiple email providers
     
     public SenderAnalysisController(GmailAnalysisService gmailAnalysisService)
     {

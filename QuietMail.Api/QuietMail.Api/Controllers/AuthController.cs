@@ -24,7 +24,12 @@ public class AuthController : Controller
                 ClientId = _configuration["Google:ClientId"],
                 ClientSecret = _configuration["Google:ClientSecret"]
             },
-            Scopes = new[] { "https://www.googleapis.com/auth/gmail.readonly"}
+            Scopes = new[]
+            {
+                "https://www.googleapis.com/auth/gmail.readonly",
+                "https://www.googleapis.com/auth/gmail.modify",
+                "https://mail.google.com/"
+            }
         });
     }
     
