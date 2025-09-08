@@ -23,7 +23,7 @@ export default function Home() {
             Understand Your Email Patterns
           </h2>
           <p className="text-xl text-muted-foreground mb-8 text-pretty max-w-2xl mx-auto">
-            Get deep insights into your Gmail inbox. Analyze sender patterns, track email engagement, and take control
+            Get deep insights into your Email inbox. Analyze sender patterns, track email engagement, and take control
             of your digital communication.
           </p>
 
