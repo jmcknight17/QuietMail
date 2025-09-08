@@ -1,5 +1,4 @@
 ﻿import * as signalR from "@microsoft/signalr";
-import { ScanResult } from "../types/scanResult";
 export const startScan = (
   accessToken: string,
   onProgress: (progress: number) => void,

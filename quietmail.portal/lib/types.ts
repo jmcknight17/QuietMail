@@ -3,12 +3,13 @@
   individualSenders: IndividualSendersDto[];
   emailCount: number;
   openedCount: number;
-  openedPercent: float;
+  openedPercent: number;
 };
 
 type IndividualSendersDto = {
     email: string;
     emailCount: number;
     openedCount: number;
-    openedPercent: float;
+    openedPercent: number;
+    isMailList: boolean;
 };

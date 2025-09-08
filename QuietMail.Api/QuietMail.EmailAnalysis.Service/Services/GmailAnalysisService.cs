@@ -75,7 +75,7 @@ public class GmailAnalysisService
                 if (listResponse.Messages == null || !listResponse.Messages.Any()) break;
                 
                 //Concurrentbag required as google batch requests are processed in parallel
-                var batchResults = new ConcurrentBag<(string Domain, string FullSenderAddress, bool IsOpened)>();
+                var batchResults = new ConcurrentBag<(string Domain, string FullSenderAddress, bool IsOpened, bool IsMailList)>();
 
                 var batch = new BatchRequest(gmailService);
                 BatchRequest.OnResponse<Google.Apis.Gmail.v1.Data.Message> callback =
@@ -92,8 +92,10 @@ public class GmailAnalysisService
                         if (string.IsNullOrEmpty(domain)) return;
                         
                         bool isOpened = (msgResponse.LabelIds == null || !msgResponse.LabelIds.Contains("UNREAD"));
+
+                        bool? isMailList = msgResponse?.LabelIds?.Contains("UNSUBSCRIBE");
                         
-                        batchResults.Add((domain, fullSenderAddress, isOpened));
+                        batchResults.Add((domain, fullSenderAddress, isOpened, isMailList ?? false));
                     };
 
                 foreach (var message in listResponse.Messages)
