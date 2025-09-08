@@ -15,5 +15,7 @@ public class IndividualSenderDto
     public int EmailCount { get; set; }
     public int OpenedCount { get; set; }
     public double OpenedPercent { get; set; }
+    
+    public bool IsMailList { get; set; }
 }
 

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuietMail.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7f4a7849d0de1c856a4ddf412433b269d1016e7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+939b774e8148730e86c2004386775d5803bf7193")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuietMail.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuietMail.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

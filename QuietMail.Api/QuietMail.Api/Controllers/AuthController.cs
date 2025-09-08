@@ -28,7 +28,6 @@ public class AuthController : Controller
             {
                 "https://www.googleapis.com/auth/gmail.readonly",
                 "https://www.googleapis.com/auth/gmail.modify",
-                "https://mail.google.com/"
             }
         });
     }
@@ -67,31 +66,8 @@ public class AuthController : Controller
                 code,
                 redirectUri,
                 CancellationToken.None);
-    
-            var credential = new UserCredential(_flow, "userId", token);
-            var gmailService = new GmailService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "QuietMail"
-            });
-
-            string? pageToken = null;
-            long inboxCount = 0;
-
-            do
-            {
-                var request = gmailService.Users.Messages.List("me");
-                request.LabelIds = new[] { "INBOX" };
-                request.PageToken = pageToken;
-                var response = await request.ExecuteAsync();
-
-                if (response.Messages != null)
-                    inboxCount += response.Messages.Count;
-
-                pageToken = response.NextPageToken;
-            } while (pageToken != null);
         
-            var frontendCallbackUrl = $"http://localhost:3000/dashboard?accessToken={token.AccessToken}&emailCount={inboxCount}";
+            var frontendCallbackUrl = $"http://localhost:3000/dashboard?accessToken={token.AccessToken}";
             return Redirect(frontendCallbackUrl);
         }
         catch (Exception e)

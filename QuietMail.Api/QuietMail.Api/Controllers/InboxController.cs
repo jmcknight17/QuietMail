@@ -15,9 +15,14 @@ public class InboxController : Controller
         _manageInboxService = manageInboxService;
     }
 
-    [HttpDelete("delete-emails-from-single-sender/{senderEmail}")]
-    public async Task<IActionResult> DeleteEmailsFromSingleSender(string senderEmail)
+    [HttpPost("trash-emails-from-senders")] 
+    public async Task<IActionResult> TrashEmailsFromSenders([FromBody] List<string> request)
     {
+        if (request == null || !request.Any())
+        {
+            return BadRequest("No sender emails provided for trashing.");
+        }
+
         if (!Request.Headers.TryGetValue("Authorization", out var authorization))
         {
             return Unauthorized("Missing Authorization header");
@@ -27,7 +32,18 @@ public class InboxController : Controller
         {
             return Unauthorized("Access token is missing.");
         }
-        await _manageInboxService.DeleteAllEmailsFromSenderAsync(accessToken, senderEmail);
-        return Ok();
+
+        try
+        {
+            await _manageInboxService.TrashAllEmailsFromSendersAsync(accessToken, request);
+            //return Ok(new { message = $"Emails from {request.SenderEmails.Count} senders moved to trash successfully." });
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            // Log exception (e.g., to Serilog, Console, etc.)
+            Console.WriteLine($"Error trashing emails: {ex.Message}");
+            return StatusCode(500, new { message = "Failed to move emails to trash.", error = ex.Message });
+        }
     }
 }
