@@ -85,6 +85,8 @@ public class GmailAnalysisService
 
                         var fromHeader = msgResponse.Payload.Headers.FirstOrDefault(h => h.Name == "From")?.Value;
                         if (string.IsNullOrEmpty(fromHeader)) return;
+                        
+                        
 
                         var match = Regex.Match(fromHeader, @"<(.+?)>");
                         var fullSenderAddress = match.Success ? match.Groups[1].Value : fromHeader;
@@ -92,10 +94,9 @@ public class GmailAnalysisService
                         if (string.IsNullOrEmpty(domain)) return;
                         
                         bool isOpened = (msgResponse.LabelIds == null || !msgResponse.LabelIds.Contains("UNREAD"));
-
-                        bool? isMailList = msgResponse?.LabelIds?.Contains("UNSUBSCRIBE");
-                        
-                        batchResults.Add((domain, fullSenderAddress, isOpened, isMailList ?? false));
+                        bool isUnsubscribable = msgResponse.Payload.Headers
+                            .Any(h => h.Name.Equals("List-Unsubscribe", StringComparison.OrdinalIgnoreCase));
+                        batchResults.Add((domain, fullSenderAddress, isOpened,  isUnsubscribable));
                     };
 
                 foreach (var message in listResponse.Messages)
@@ -127,6 +128,9 @@ public class GmailAnalysisService
                         currentCounts.Opened++;
                     }
                     
+                    currentCounts.IsMailList = currentCounts.IsMailList || result.IsMailList; 
+
+                    
                     domainAnalytics.IndividualSenders[result.FullSenderAddress] = currentCounts;
                 }
 
@@ -155,7 +159,8 @@ public class GmailAnalysisService
                             Email = senderKvp.Key,
                             EmailCount = senderKvp.Value.Total,
                             OpenedCount = senderKvp.Value.Opened,
-                            OpenedPercent = senderKvp.Value.Total > 0 ? Math.Round((double)senderKvp.Value.Opened / senderKvp.Value.Total * 100, 2) : 0
+                            OpenedPercent = senderKvp.Value.Total > 0 ? Math.Round((double)senderKvp.Value.Opened / senderKvp.Value.Total * 100, 2) : 0,
+                            IsMailList = senderKvp.Value.IsMailList
                         }).OrderByDescending(s => s.EmailCount).ToList()
                     };
                 })

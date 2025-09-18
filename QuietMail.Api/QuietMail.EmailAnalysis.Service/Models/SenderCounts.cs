@@ -4,4 +4,5 @@ public class SenderCounts
 {
     public int Total;
     public int Opened;
+    public bool IsMailList;
 }

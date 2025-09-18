@@ -36,12 +36,10 @@ public class InboxController : Controller
         try
         {
             await _manageInboxService.TrashAllEmailsFromSendersAsync(accessToken, request);
-            //return Ok(new { message = $"Emails from {request.SenderEmails.Count} senders moved to trash successfully." });
             return Ok();
         }
         catch (Exception ex)
         {
-            // Log exception (e.g., to Serilog, Console, etc.)
             Console.WriteLine($"Error trashing emails: {ex.Message}");
             return StatusCode(500, new { message = "Failed to move emails to trash.", error = ex.Message });
         }

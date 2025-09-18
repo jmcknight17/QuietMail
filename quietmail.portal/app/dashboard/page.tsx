@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Mail, BarChart3, ChevronDown } from 'lucide-react';
+import {Trash2, Mail, BarChart3, ChevronDown, Pizza} from 'lucide-react';
 import { ScanResult, SenderDetail } from '@/lib/types';
 import { trashEmailsFromSenders } from "@/lib/emailHandlingService";
 
@@ -355,6 +355,17 @@ export default function Dashboard() {
                                                                                                 disabled={isTrashing}>
                                                                                             <Trash2 className="h-4 w-4" />
                                                                                         </Button>
+                                                                                        { (sender.isMailList) && (
+                                                                                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                                                                                            onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            handleUnsubscribe([sender.email]);
+                                                                                            }}
+                                                                                            disabled={isTrashing}>
+                                                                                            <Pizza className="h-4 w-4" />
+                                                                                            </Button>
+
+                                                                                        )}
                                                                                     </TableCell>
                                                                                 </TableRow>
                                                                             ))}
