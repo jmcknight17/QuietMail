@@ -23,8 +23,30 @@ export default function Dashboard() {
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [isTrashing, setIsTrashing] = useState<boolean>(false);
 
+
     const [selectedIndividualSenders, setSelectedIndividualSenders] = useState<Set<string>>(new Set());
 
+    const handleUnsubscribe = async (senderEmails: string[]) => {
+        if (!senderEmails || senderEmails.length === 0) {
+            return;
+        }
+        setIsTrashing(true);
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setError('User not authenticated.');
+            setIsTrashing(false);
+            return;
+        }
+        try {
+            await unsubscribeFromSender(token, senderEmails);
+            setError('');
+            handleStartScan();
+        } catch (err: any) {
+            setError(`Failed to trash emails: ${err.message || 'Unknown error'}`);
+        } finally {
+            setIsTrashing(false);
+        }
+    }
 
     const handleStartScan = useCallback(() => {
         setIsScanning(true);
