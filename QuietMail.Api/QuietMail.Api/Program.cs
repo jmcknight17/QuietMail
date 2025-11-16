@@ -20,6 +20,8 @@ builder.Services.AddSession();
 
 builder.Services.AddSignalR();
 
+builder.Services.AddHttpClient();
+
 builder.Services.AddScoped<GmailAnalysisService>();
 builder.Services.AddScoped<ManageInboxService>();
 
