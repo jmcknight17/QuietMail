@@ -46,7 +46,7 @@ public class InboxController : Controller
         }
     }
 
-    [HttpPost("unsubscribe-senders")]
+    [HttpPost("unsubscribeSenders")]
     public async Task<IActionResult> UnsubscribeSenders([FromBody] List<string>? senders)
     {
         if (senders == null || !senders.Any())

@@ -100,20 +100,20 @@ public class ManageInboxService
                 var listUnsubscribeHeader = message.Payload.Headers
                     .FirstOrDefault(h => h.Name.Equals("List-Unsubscribe", StringComparison.OrdinalIgnoreCase))?.Value;
                 
-                var ubsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
-                if (ubsubscribeUrls == null || !ubsubscribeUrls.Any())
+                var unsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
+                if (unsubscribeUrls == null || !unsubscribeUrls.Any())
                     throw new Exception("No unsubscribe URLs found in the 'List-Unsubscribe' header.");
                 
                 string bestHttpLink = null;
                 HttpMethod httpMethod = HttpMethod.Get;
 
                 // Simple heuristic to prefer POST
-                bestHttpLink = ubsubscribeUrls.FirstOrDefault(link => IsLikelyHttpPost(link));
+                bestHttpLink = unsubscribeUrls.FirstOrDefault(link => IsLikelyHttpPost(link));
                 
                 if (bestHttpLink != null)
                     httpMethod = HttpMethod.Post;
                 else
-                    bestHttpLink = ubsubscribeUrls.FirstOrDefault(); 
+                    bestHttpLink = unsubscribeUrls.FirstOrDefault(); 
 
                 if (string.IsNullOrEmpty(bestHttpLink))
                     throw new InvalidOperationException($"Failed to select an HTTP unsubscribe link for {senderEmail}.");

@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import {Trash2, Mail, BarChart3, ChevronDown, Pizza} from 'lucide-react';
-import { ScanResult, SenderDetail } from '@/lib/types';
-import { trashEmailsFromSenders } from "@/lib/emailHandlingService";
+import {Trash2, Mail, ChevronDown, Pizza} from 'lucide-react';
+import { ScanResult } from '@/lib/types';
+import { trashEmailsFromSenders, unsubscribeFromSender } from "@/lib/emailHandlingService";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -84,7 +84,7 @@ export default function Dashboard() {
 
         } else {
             const tokenFromStorage = localStorage.getItem('accessToken');
-            const countFromStorage = localStorage.getItem('emailCount');
+            //const countFromStorage = localStorage.getItem('emailCount');
 
             if (tokenFromStorage) {
                 setIsAuthenticated(true);
