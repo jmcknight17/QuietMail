@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\QuietMail.Commons\QuietMail.Commons.csproj" />
       <ProjectReference Include="..\QuietMail.common\QuietMail.common.csproj" />
     </ItemGroup>
 </Project>
