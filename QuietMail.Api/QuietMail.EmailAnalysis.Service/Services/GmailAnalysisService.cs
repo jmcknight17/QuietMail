@@ -52,7 +52,7 @@ public class GmailAnalysisService
                     totalMessages += countResponse.Messages.Count;
                 }
                 pageTokenForCount = countResponse.NextPageToken;
-                await Task.Delay(50); // Be respectful of API rate limits
+                await Task.Delay(50); // Be respectful of API rate limits (Look up how to setup rate limiting for my api)
                 
             } while (pageTokenForCount != null);
 
