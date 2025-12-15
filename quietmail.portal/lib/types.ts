@@ -1,4 +1,4 @@
-﻿type ScanResult = {
+﻿export type ScanResult = {
   domain: string;
   individualSenders: IndividualSendersDto[];
   emailCount: number;
@@ -6,7 +6,7 @@
   openedPercent: number;
 };
 
-type IndividualSendersDto = {
+export type IndividualSendersDto = {
     email: string;
     emailCount: number;
     openedCount: number;
