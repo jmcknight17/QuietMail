@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import {Trash2, Mail, ChevronDown, Pizza} from 'lucide-react';
 import { ScanResult } from '@/lib/types';
-import {DashboardStats} from "@/components/dashboard/dashboardStats";
+import { DashboardStats} from "@/components/dashboard/dashboardStats";
 import { trashEmailsFromSenders, unsubscribeFromSender } from "@/lib/emailHandlingService";
 
 export default function Dashboard() {
@@ -243,7 +243,7 @@ export default function Dashboard() {
 
                         {scanResults.length > 0 && (
                             <div className="space-y-4">
-                                <DashboardStats />
+                                <DashboardStats scanResult={scanResults}/>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center space-x-2">
