@@ -1,28 +1,32 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Microsoft.AspNetCore.Mvc;
+using QuietMail.Api.Interfaces;
+using QuietMail.Api.Models;
 using QuietMail.EmailAnalysis.Service.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace QuietMail.Api.Controllers;
 [ApiController]
 [Route("inbox")]
-public class InboxController : Controller 
+public class InboxController : ControllerBase 
 {
     //TODO: Implement Logging 
-    private readonly ManageInboxService _manageInboxService;
+    private readonly IServiceProvider _serviceProvider;
 
-    public InboxController(ManageInboxService manageInboxService)
+    public InboxController(IServiceProvider serviceProvider)
     {
-        _manageInboxService = manageInboxService;
+        _serviceProvider = serviceProvider;
     }
 
     [HttpPost("trash-emails-from-senders")] 
-    public async Task<IActionResult> TrashEmailsFromSenders([FromBody] List<string> request)
+    public async Task<IActionResult> TrashEmailsFromSenders([FromBody] InboxActionRequest request)
     {
-        if (request == null || !request.Any())
+        if (request == null || !request.senders.Any())
         {
             return BadRequest("No sender emails provided for trashing.");
         }
+        var provider = request.providerType;
 
         if (!Request.Headers.TryGetValue("Authorization", out var authorization))
         {
@@ -33,10 +37,10 @@ public class InboxController : Controller
         {
             return Unauthorized("Access token is missing.");
         }
-
         try
         {
-            await _manageInboxService.TrashAllEmailsFromSendersAsync(accessToken, request);
+            var service = _serviceProvider.GetKeyedService<IEmailProvider>(provider);
+            await service.TrashAllEmailsFromSendersAsync(accessToken, request.senders);
             return Ok();
         }
         catch (Exception ex)
@@ -47,10 +51,13 @@ public class InboxController : Controller
     }
 
     [HttpPost("unsubscribeSenders")]
-    public async Task<IActionResult> UnsubscribeSenders([FromBody] List<string>? senders)
+    public async Task<IActionResult> UnsubscribeSenders([FromBody] InboxActionRequest request)
     {
+        var senders = request.senders;
         if (senders == null || !senders.Any())
             return BadRequest("No sender emails provided for unsubscribing.");
+
+        var provider = request.providerType;
 
         if (!Request.Headers.TryGetValue("Authorization", out var authorization))   
             return Unauthorized("Missing Authorization header");
@@ -61,7 +68,8 @@ public class InboxController : Controller
 
         try
         {
-            await _manageInboxService.UnsubscribeFromSendersAsync(accessToken, senders);
+            var service = _serviceProvider.GetKeyedService<IEmailProvider>(provider);
+            await service.UnsubscribeFromSendersAsync(accessToken, senders);
             return Ok();
         }
         catch (Exception ex)
