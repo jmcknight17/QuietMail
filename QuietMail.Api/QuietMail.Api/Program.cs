@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using QuietMail.Api.Interfaces;
 using QuietMail.common.Hubs;
 using QuietMail.EmailAnalysis.Service.Services;
 
@@ -22,8 +23,10 @@ builder.Services.AddSignalR();
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddScoped<GmailAnalysisService>();
-builder.Services.AddScoped<ManageInboxService>();
+builder.Services.AddKeyedScoped<IEmailProvider, GmailAnalysisService>(ProviderType.Gmail);
+builder.Services.AddKeyedScoped<IEmailProvider, OutlookAnalysisService>(ProviderType.Outlook);
+builder.Services.AddKeyedScoped<IAuthService, GoogleAuthService>(ProviderType.Gmail);
+//builder.Services.AddKeyedScoped<IAuthService, OutlookAuthService>(ProviderType.Outlook);
 
 var app = builder.Build();
 
@@ -44,7 +47,7 @@ app.UseCors(builder =>
            .AllowAnyHeader()
            .AllowAnyMethod()
            .AllowCredentials());
-
+ 
 app.MapControllers();
 
 app.MapHub<ProgressHub>("/progressHub");

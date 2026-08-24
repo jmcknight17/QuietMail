@@ -1,1 +1,28 @@
-﻿/QuietMail.Api/QuietMail.Api/obj/QuietMail.Api.csproj.nuget.g.props
+﻿# =========================
+# .NET / C# (QuietMail.Api)
+# =========================
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+appsettings.Development.json
+
+# =========================
+# Next.js / Node (QuietMail.Portal)
+# =========================
+node_modules/
+.next/
+out/
+build/
+.env*.local
+.vercel
+
+# =========================
+# OS / IDE / General
+# =========================
+.DS_Store
+.vscode/
+*.log
