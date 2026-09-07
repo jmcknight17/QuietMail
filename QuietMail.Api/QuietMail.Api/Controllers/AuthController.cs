@@ -10,20 +10,23 @@ namespace QuietMail.Api.Controllers;
 [Route("auth/{provider}")]
 public class AuthController : Controller
 {
-    private readonly IServiceProvider _serviceProvider; 
-    public AuthController(IServiceProvider serviceProvider)
+    private readonly IProviderHelper _providerHelper;
+    public AuthController(IProviderHelper providerHelper)
     {
-        _serviceProvider = serviceProvider;
+        _providerHelper = providerHelper;
     }
     
-    //ENDPOINT 1 - This is the endpoint that the user starts their login processes with 
     [HttpGet("login")]
-    public async Task<IActionResult> GoogleLogin([FromRoute] string provider)
+    public async Task<IActionResult> Login([FromRoute] string provider)
     {
         try
         {
-            var authService = GetAuthServiceFromProvider(provider);   
-            var redirectUri = Url.Action(nameof(Callback), "Auth", null, protocol: Request.Scheme);
+            var authService = _providerHelper.GetAuthServiceFromRouteString(provider);
+
+            if (authService is null)
+                return BadRequest($"No auth service found for provider: {provider}");
+
+            var redirectUri = Url.Action(nameof(Callback), "Auth", new { provider }, protocol: Request.Scheme);
             
             if (string.IsNullOrEmpty(redirectUri))
                 return BadRequest("Failed to build the redirect URI");
@@ -32,6 +35,9 @@ public class AuthController : Controller
             TempData[$"oauth_state_{provider.ToLowerInvariant()}"] = state;
 
             var url  = await authService.GetUrlAsync(redirectUri, state);
+            
+            if (string.IsNullOrEmpty(url))
+                throw new Exception("Failed to generate the authorization URL");
 
             return Redirect(url);
         }
@@ -41,21 +47,25 @@ public class AuthController : Controller
         }
     }
     
-    //ENDPOINT 2 - This is the endpoint that Google redirects to after the user has logged in
     [HttpGet("callback")]
-    public async Task<IActionResult> Callback([FromRoute] string provider, 
+    public async Task<IActionResult>Callback(
+        [FromRoute] string provider, 
         [FromQuery] string code, 
         [FromQuery] string state)
     {
     try
         {
-        var authService = GetAuthServiceFromProvider(provider);
-        var storedState = TempData["oauth_state"] as string;
+        var authService = _providerHelper.GetAuthServiceFromRouteString(provider);
+
+        if (authService is null)
+                return BadRequest($"No auth service found for provider: {provider}");
+
+        var storedState = TempData[$"oauth_state_{provider.ToLowerInvariant()}"] as string;
     
         if (state != storedState)
             return BadRequest("Invalid state parameter");
 
-            var redirectUri = Url.Action(nameof(Callback), "Auth", null, Request.Scheme);
+            var redirectUri = Url.Action(nameof(Callback), "Auth", new { provider }, Request.Scheme);
             
             var accessToken = await authService.GetAccessTokenAsync(code, redirectUri);
             
@@ -68,29 +78,4 @@ public class AuthController : Controller
         }
     }
 
-    private bool TryParseProvider(string provider, out ProviderType providerType)
-    {
-        return Enum.TryParse(provider, ignoreCase:true, out providerType);
-    }
-
-    private IAuthService? GetAuthServiceFromProvider(string provider)
-    {
-        try
-        {
-            if (!TryParseProvider(provider, out var providerType))
-                throw new Exception("Invalid provider");
-
-            var authService = _serviceProvider.GetKeyedService<IAuthService>(providerType);
-
-            if (authService is null)
-                throw new Exception("Failed to resolve keyedService");
-
-            return authService;
-        }
-        catch(Exception e)
-        {
-            throw new Exception(e.Message);
-        }
-    }    
-    
 }

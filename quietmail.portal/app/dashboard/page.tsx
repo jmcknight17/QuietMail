@@ -41,7 +41,7 @@ export default function Dashboard() {
         try {
             await unsubscribeFromSender(token, senderEmails);
             setError('');
-            handleStartScan();
+            //handleStartScan();
         } catch (err: any) {
             setError(`Failed to trash emails: ${err.message || 'Unknown error'}`);
         } finally {
@@ -57,9 +57,18 @@ export default function Dashboard() {
         setExpandedRows(new Set());
         setSelectedIndividualSenders(new Set());
         const token = localStorage.getItem('accessToken');
+        const provider = localStorage.getItem('provider');
+        if (!token || !provider) {
+            setError('User not authenticated.');
+            setIsScanning(false);
+            return;
+        }
+
+        console.log('Starting scan with token:', token, 'and provider:', provider);
 
         startScan(
             token,
+            provider,
             (progressUpdate) => setProgress(progressUpdate),
             (results) => {
                 setScanResults(results);
@@ -74,14 +83,16 @@ export default function Dashboard() {
 
     useEffect(() => {
         const accessTokenFromUrl = searchParams.get('accessToken');
+        const providerFromUrl = searchParams.get('provider');
 
-        if (accessTokenFromUrl) {
+        if (accessTokenFromUrl && providerFromUrl) {
             localStorage.setItem('accessToken', accessTokenFromUrl);
+            localStorage.setItem('provider', providerFromUrl);
 
             setIsAuthenticated(true);
 
             router.replace('/dashboard', { scroll: false });
-            handleStartScan();
+            //handleStartScan();
 
         } else {
             const tokenFromStorage = localStorage.getItem('accessToken');
@@ -92,7 +103,7 @@ export default function Dashboard() {
 
 
                 if (!isScanning && scanResults.length === 0) {
-                    handleStartScan();
+                    //handleStartScan();
                 }
             } else {
                 router.push('/');

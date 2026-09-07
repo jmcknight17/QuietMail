@@ -2,9 +2,15 @@ using QuietMail.Api.Interfaces;
 
 namespace QuietMail.EmailAnalysis.Service.Services;
 
-public class OutlookAnalysisService : IEmailProvider
+public class OutlookAnalysisService : IEmailActionService
 {
     public ProviderType ProviderName => ProviderType.Outlook;
+
+    public Task AnalyzeSendersAsync(string accessToken, string connectionId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task TrashAllEmailsFromSendersAsync(string accessToken, List<string> senders)
     {
         throw new NotImplementedException();

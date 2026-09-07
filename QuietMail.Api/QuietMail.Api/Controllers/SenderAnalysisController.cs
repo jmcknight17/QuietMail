@@ -5,31 +5,43 @@ using QuietMail.EmailAnalysis.Service.Services;
 namespace QuietMail.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("sender-analysis/{provider}")]
 public class SenderAnalysisController : ControllerBase
 {
-    private GmailAnalysisService _gmailAnalysisService; // TODO: Make this a factory to support multiple email providers
-    
-    public SenderAnalysisController(GmailAnalysisService gmailAnalysisService)
+    private readonly IProviderHelper _providerHelper;
+
+    public SenderAnalysisController(IProviderHelper providerHelper)
     {
-        _gmailAnalysisService = gmailAnalysisService;
+        _providerHelper = providerHelper;
     }
-    
-    [HttpPost("/start-scan")]
-    public IActionResult StartScan([FromBody] ScanRequest request)
+
+    [HttpPost("start-scan")]
+    public async Task<IActionResult> StartScan([FromRoute] string provider, [FromBody] ScanRequest request)
     {
-        if (!Request.Headers.TryGetValue("Authorization", out var authorization))
+        try
         {
-            return Unauthorized("Missing Authorization header");
+            if (!Request.Headers.TryGetValue("Authorization", out var authorization))
+                return Unauthorized("Missing Authorization header");
+
+            var accessToken = authorization.ToString().Split(" ").Last();
+            
+            if (string.IsNullOrEmpty(accessToken))
+                return Unauthorized("Access token is missing.");
+
+            var anyalysisService = _providerHelper.GetScanServiceFromRouteString(provider);
+
+            if (anyalysisService is null)
+                return BadRequest($"No scan service found for provider: {provider}");
+
+            await anyalysisService.StartScanAsync(accessToken, request.ConnectionId);
+
+            return Accepted();
         }
-        var accessToken = authorization.ToString().Split(" ").Last();
-        if (string.IsNullOrEmpty(accessToken))
+        catch (Exception ex)
         {
-            return Unauthorized("Access token is missing.");
+            return StatusCode(500, new { message = "Failed to start scan.", error = ex.Message });
         }
-        _ = _gmailAnalysisService.AnalyzeSendersAsync(accessToken, request.ConnectionId);
-        
-        return Accepted();
+
     }
 
 }

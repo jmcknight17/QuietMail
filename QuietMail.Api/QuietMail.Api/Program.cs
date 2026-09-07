@@ -23,10 +23,11 @@ builder.Services.AddSignalR();
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddKeyedScoped<IEmailProvider, GmailAnalysisService>(ProviderType.Gmail);
-builder.Services.AddKeyedScoped<IEmailProvider, OutlookAnalysisService>(ProviderType.Outlook);
+builder.Services.AddKeyedScoped<IEmailActionService, GmailAnalysisService>(ProviderType.Gmail);
+builder.Services.AddKeyedScoped<IScanService, GmailScanningService>(ProviderType.Gmail);
 builder.Services.AddKeyedScoped<IAuthService, GoogleAuthService>(ProviderType.Gmail);
-//builder.Services.AddKeyedScoped<IAuthService, OutlookAuthService>(ProviderType.Outlook);
+
+builder.Services.AddScoped<IProviderHelper, ProviderHelper>();
 
 var app = builder.Build();
 

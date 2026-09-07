@@ -8,25 +8,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace QuietMail.Api.Controllers;
 [ApiController]
-[Route("inbox")]
+[Route("inbox/{provider}")]
 public class InboxController : ControllerBase 
 {
-    //TODO: Implement Logging 
-    private readonly IServiceProvider _serviceProvider;
+    public readonly IProviderHelper _providerHelper;
 
-    public InboxController(IServiceProvider serviceProvider)
+    public InboxController(IProviderHelper providerHelper)
     {
-        _serviceProvider = serviceProvider;
+        _providerHelper = providerHelper;
     }
 
     [HttpPost("trash-emails-from-senders")] 
-    public async Task<IActionResult> TrashEmailsFromSenders([FromBody] InboxActionRequest request)
+    public async Task<IActionResult> TrashEmailsFromSenders([FromRoute] string provider, [FromBody] InboxActionRequest request)
     {
         if (request == null || !request.senders.Any())
         {
             return BadRequest("No sender emails provided for trashing.");
         }
-        var provider = request.providerType;
 
         if (!Request.Headers.TryGetValue("Authorization", out var authorization))
         {
@@ -39,7 +37,11 @@ public class InboxController : ControllerBase
         }
         try
         {
-            var service = _serviceProvider.GetKeyedService<IEmailProvider>(provider);
+            var service = _providerHelper.GetEmailActionServiceFromRouteString(provider);
+
+            if (service is null)
+                return BadRequest($"No email action service found for provider: {provider}");
+            
             await service.TrashAllEmailsFromSendersAsync(accessToken, request.senders);
             return Ok();
         }
@@ -51,13 +53,11 @@ public class InboxController : ControllerBase
     }
 
     [HttpPost("unsubscribeSenders")]
-    public async Task<IActionResult> UnsubscribeSenders([FromBody] InboxActionRequest request)
+    public async Task<IActionResult> UnsubscribeSenders([FromRoute] string provider, [FromBody] InboxActionRequest request)
     {
         var senders = request.senders;
         if (senders == null || !senders.Any())
             return BadRequest("No sender emails provided for unsubscribing.");
-
-        var provider = request.providerType;
 
         if (!Request.Headers.TryGetValue("Authorization", out var authorization))   
             return Unauthorized("Missing Authorization header");
@@ -68,7 +68,11 @@ public class InboxController : ControllerBase
 
         try
         {
-            var service = _serviceProvider.GetKeyedService<IEmailProvider>(provider);
+            var service = _providerHelper.GetEmailActionServiceFromRouteString(provider);
+            
+            if (service is null)
+                return BadRequest($"No email action service found for provider: {provider}");
+
             await service.UnsubscribeFromSendersAsync(accessToken, senders);
             return Ok();
         }
