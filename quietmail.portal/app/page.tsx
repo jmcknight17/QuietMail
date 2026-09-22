@@ -1,21 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, BarChart3, Shield, Zap } from "lucide-react"
+import {BarChart3, Shield, Zap } from "lucide-react"
 import Image from "next/image"
+import { DashboardHeader } from "@/components/shared/dashboardHeader"
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Mail className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">QuietMail</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      
+      <DashboardHeader />
 
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">

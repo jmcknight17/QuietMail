@@ -1,5 +1,5 @@
-﻿export const trashEmailsFromSenders = async (accessToken: string, senderEmails: string[]) => {
-    const response = await fetch('http://localhost:5022/inbox/trash-emails-from-senders', {
+﻿export const trashEmailsFromSenders = async (accessToken: string, senderEmails: string[],provider: string) => {
+    const response = await fetch(`http://localhost:5022/inbox/${provider}/trash-emails-from-senders`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
