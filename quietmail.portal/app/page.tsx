@@ -5,9 +5,12 @@ import Image from "next/image"
 import { DashboardHeader } from "@/components/shared/dashboardHeader"
 
 export default function Home() {
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5022";
+
   return (
     <div className="min-h-screen bg-background">
-      
+
       <DashboardHeader />
 
       <section className="py-20 px-4">
@@ -21,7 +24,7 @@ export default function Home() {
           </p>
 
           <div className="mb-12">
-            <a href="http://localhost:5022/auth/gmail/login">
+            <a href={`${apiUrl}/auth/gmail/login`}>
               <Button size="lg" className="text-lg px-4 py-6 bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Image
                       src="/google_login.png"  alt="Google Logo" width={30} height={18} className="mr-1"/>

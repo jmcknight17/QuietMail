@@ -13,7 +13,16 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddControllers();
 
-builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -30,6 +39,8 @@ builder.Services.AddKeyedScoped<IAuthService, GoogleAuthService>(ProviderType.Gm
 builder.Services.AddScoped<IProviderHelper, ProviderHelper>();
 
 var app = builder.Build();
+
+app.UseCors("FrontendPolicy");
 
 if (app.Environment.IsDevelopment())
 {

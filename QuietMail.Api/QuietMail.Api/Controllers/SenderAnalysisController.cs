@@ -20,11 +20,9 @@ public class SenderAnalysisController : ControllerBase
     {
         try
         {
-            if (!Request.Headers.TryGetValue("Authorization", out var authorization))
-                return Unauthorized("Missing Authorization header");
 
-            var accessToken = authorization.ToString().Split(" ").Last();
-            
+            var accessToken = Request.Cookies["accessToken"];
+
             if (string.IsNullOrEmpty(accessToken))
                 return Unauthorized("Access token is missing.");
 

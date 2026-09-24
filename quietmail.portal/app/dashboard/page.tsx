@@ -5,12 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { startScan } from '@/lib/scanService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Mail, ChevronDown, Pizza } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
-import { DashboardStats } from "@/components/dashboard/dashboardStats";
 import { trashEmailsFromSenders, unsubscribeFromSender } from "@/lib/emailHandlingService";
 import { ScanHero } from "@/components/dashboard/scanHero";
 import {DashboardHeader} from "@/components/shared/dashboardHeader";
@@ -52,20 +49,10 @@ export default function Dashboard() {
         setProgress(0);
         setError('');
         setScanResults([]);
-        
-        const token = localStorage.getItem('accessToken');
-        const provider = localStorage.getItem('provider');
-        
-        if (!token || !provider) {
-            setError('User not authenticated.');
-            setIsScanning(false);
-            return;
-        }
 
-        console.log('Starting scan with token:', token, 'and provider:', provider);
+        const provider = localStorage.getItem('provider');
 
         startScan(
-            token,
             provider,
             (progressUpdate) => setProgress(progressUpdate),
             (results) => {
@@ -80,23 +67,32 @@ export default function Dashboard() {
     }, []);
 
     useEffect(() => {
-        const accessTokenFromUrl = searchParams.get('accessToken');
-        const providerFromUrl = searchParams.get('provider');
+        const checkAuthStatus = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5022";
+                
+                console.log({apiUrl});
+                const response = await fetch(`${apiUrl}/auth/status`, {
+                    method: 'GET',
+                    credentials: 'include' 
+                });
 
-        if (accessTokenFromUrl && providerFromUrl) {
-            localStorage.setItem('accessToken', accessTokenFromUrl);
-            localStorage.setItem('provider', providerFromUrl);
-            setIsAuthenticated(true);
-            router.replace('/dashboard', { scroll: false });
-        } else {
-            const tokenFromStorage = localStorage.getItem('accessToken');
-            if (tokenFromStorage) {
-                setIsAuthenticated(true);
-            } else {
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('provider', data.provider);
+                    setIsAuthenticated(true);
+                } else {
+                    router.push('/');
+                }
+            } catch (error) {
+                console.error("Auth check failed:", error);
                 router.push('/');
             }
-        }
-    }, [router, searchParams, isScanning, scanResults.length, handleStartScan]);
+        };
+
+        checkAuthStatus();
+    }, [router]);
 
     const handleTrashSenders = async (senderEmails: string[]) => {
         if (!senderEmails || senderEmails.length === 0) return;

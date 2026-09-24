@@ -1,16 +1,16 @@
 ﻿import * as signalR from "@microsoft/signalr";
 export const startScan = (
-  accessToken: string,
   provider: string,
   onProgress: (progress: number) => void,
   onComplete: (results: ScanResult[]) => void,
   onError: (error: string) => void
 ) => {
   const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:7297/progressHub")
+    .withUrl("https://localhost:7297/progressHub", {
+        withCredentials: true
+    })
     .withAutomaticReconnect([0, 2000, 10000, 30000])
     .build();
-
   connection.on("ReceiveProgressUpdate", (progressUpdate: number) => {
     onProgress(progressUpdate);
   });
@@ -28,9 +28,9 @@ export const startScan = (
       const response = await fetch(`https://localhost:7297/sender-analysis/${provider}/start-scan`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ connectionId })
       });
 
