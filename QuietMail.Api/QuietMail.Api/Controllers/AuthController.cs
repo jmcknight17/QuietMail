@@ -76,14 +76,7 @@ public class AuthController : Controller
             };
 
             Response.Cookies.Append("accessToken", accessToken, cookieOptions);
-            Response.Cookies.Append("provider", provider.ToLowerInvariant(), new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = Request.IsHttps, 
-                SameSite = SameSiteMode.None, 
-                Expires = DateTimeOffset.UtcNow.AddHours(1),
-                Path = "/"
-            });
+            Response.Cookies.Append("provider", provider.ToLowerInvariant(), cookieOptions);
 
             var frontendCallbackUrl = $"http://localhost:3000/dashboard";
             return Redirect(frontendCallbackUrl);
@@ -101,7 +94,8 @@ public class AuthController : Controller
         {
             HttpOnly = true,
             Secure = Request.IsHttps,
-            SameSite = SameSiteMode.Lax
+            SameSite = SameSiteMode.None,
+            Path = "/"
         };
 
         Response.Cookies.Delete("accessToken", cookieOptions);
@@ -110,17 +104,36 @@ public class AuthController : Controller
         return Ok(new { message = "Logged out successfully" });
     }
 
-    [HttpGet("~/auth/status")]
-    public IActionResult CheckStatus()
+    [HttpGet("~/auth/me")]
+    public async Task<IActionResult> CheckStatus()
     {
-        if (Request.Cookies.ContainsKey("accessToken"))
+        if (!Request.Cookies.TryGetValue("accessToken", out var accessToken) ||
+            !Request.Cookies.TryGetValue("provider", out var provider))
+            return Unauthorized(new { isAuthenticated = false, message = "No active session" });
+        
+
+        try
         {
-            var provider = Request.Cookies["provider"];
+            var authService = _providerHelper.GetAuthServiceFromRouteString(provider);
+            if (authService is null) return BadRequest($"No auth service for: {provider}");
 
-            return Ok(new { isAuthenticated = true, provider = provider });
+            var userProfile = await authService.GetUserProfileAsync(accessToken);
+
+            return Ok(new
+            {
+                isAuthenticated = true,
+                user = new
+                {
+                    email = userProfile.Email,
+                    pictureUrl = userProfile.PictureUrl,
+                    provider = provider.ToLowerInvariant()
+                }
+            });
         }
-
-        return Unauthorized(new { message = "No valid session found" });
+        catch
+        {
+            return Unauthorized(new { isAuthenticated = false, message = "Session expired or invalid" });
+        }
     }
 
 }

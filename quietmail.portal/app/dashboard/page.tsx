@@ -13,6 +13,12 @@ import { ScanHero } from "@/components/dashboard/scanHero";
 import {DashboardHeader} from "@/components/shared/dashboardHeader";
 import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
 
+export interface UserProfile {
+    email: string;
+    pictureUrl: string;
+    provider: string;
+}
+
 export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -23,6 +29,7 @@ export default function Dashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [isTrashing, setIsTrashing] = useState<boolean>(false);
+    const [user, setUser] = useState<UserProfile | null>(null);
 
     const handleUnsubscribe = async (senderEmails: string[]) => {
         if (!senderEmails || senderEmails.length === 0) return;
@@ -67,31 +74,28 @@ export default function Dashboard() {
     }, []);
 
     useEffect(() => {
-        const checkAuthStatus = async () => {
+        const fetchUserProfile = async () => {
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5022";
-                
-                console.log({apiUrl});
-                const response = await fetch(`${apiUrl}/auth/status`, {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7297";
+                const response = await fetch(`${apiUrl}/auth/me`, {
                     method: 'GET',
-                    credentials: 'include' 
+                    credentials: 'include'
                 });
-
 
                 if (response.ok) {
                     const data = await response.json();
-                    localStorage.setItem('provider', data.provider);
+                    setUser(data.user);
                     setIsAuthenticated(true);
                 } else {
                     router.push('/');
                 }
-            } catch (error) {
-                console.error("Auth check failed:", error);
+            } catch (err) {
+                console.error("Auth initialization failed:", err);
                 router.push('/');
             }
         };
 
-        checkAuthStatus();
+        fetchUserProfile();
     }, [router]);
 
     const handleTrashSenders = async (senderEmails: string[]) => {
@@ -129,7 +133,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-background">
-            <DashboardHeader />
+            <DashboardHeader user= {user} />
 
             <div className="container mx-auto p-4 md:p-8 max-w-6xl">
                 {error && (
