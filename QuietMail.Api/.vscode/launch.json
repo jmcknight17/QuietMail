@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Run API & Portal",
+      "configurations": [
+        "Launch .NET API",
+        "Launch React Portal"
+      ],
+      "stopAll": true
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Launch .NET API",
+      "type": "dotnet",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "projectPath": "${workspaceFolder}/QuietMail.Api/QuietMail.Api.csproj",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "Launch React Portal",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/../QuietMail.Portal",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "console": "integratedTerminal"
+    }
+  ]
+}
