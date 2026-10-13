@@ -24,5 +24,7 @@ build/
 # OS / IDE / General
 # =========================
 .DS_Store
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 *.log
