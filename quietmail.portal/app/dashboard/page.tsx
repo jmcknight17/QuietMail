@@ -12,6 +12,7 @@ import { trashEmailsFromSenders, unsubscribeFromSender } from "@/lib/emailHandli
 import { ScanHero } from "@/components/dashboard/scanHero";
 import {DashboardHeader} from "@/components/shared/dashboardHeader";
 import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
+import { useAuth } from '@/context/AuthContext';
 
 export interface UserProfile {
     email: string;
@@ -19,17 +20,25 @@ export interface UserProfile {
     provider: string;
 }
 
+export interface TrashEmailResult{
+    deletedEmails : number;
+}
+
 export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const {isAuthenticated, provider} = useAuth();
+
+    const [isResultModalVisible, setIsResultModeVisible] = useState<boolean>(false);
+    const [isTrashing, setIsTrashing] = useState<boolean>(false);
+    const [trashResult, setTrashResult] = useState<TrashEmailResult | null>(null);
     
     const [isScanning, setIsScanning] = useState<boolean>(false);
+    
     const [scanResults, setScanResults] = useState<ScanResult[]>([]);
     const [error, setError] = useState<string>('');
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
-    const [isTrashing, setIsTrashing] = useState<boolean>(false);
-    const [user, setUser] = useState<UserProfile | null>(null);
 
     const handleUnsubscribe = async (senderEmails: string[]) => {
         if (!senderEmails || senderEmails.length === 0) return;
@@ -73,46 +82,17 @@ export default function Dashboard() {
         );
     }, []);
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7297";
-                const response = await fetch(`${apiUrl}/auth/me`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data.user);
-                    setIsAuthenticated(true);
-                } else {
-                    router.push('/');
-                }
-            } catch (err) {
-                console.error("Auth initialization failed:", err);
-                router.push('/');
-            }
-        };
-
-        fetchUserProfile();
-    }, [router]);
 
     const handleTrashSenders = async (senderEmails: string[]) => {
-        if (!senderEmails || senderEmails.length === 0) return;
+        if (!isAuthenticated) return;
         
         setIsTrashing(true);
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            setError('User not authenticated.');
-            setIsTrashing(false);
-            return;
-        }
-
         try {
-            await trashEmailsFromSenders(token, senderEmails, localStorage.getItem('provider') || '');
+            console.log(provider);
+            const response = await trashEmailsFromSenders(senderEmails, provider || '');
+            setTrashResult(response);
+            setIsResultModeVisible(true);
             setError('');
-            handleStartScan();
         } catch (err: any) {
             setError(`Failed to trash emails: ${err.message || 'Unknown error'}`);
         } finally {
@@ -133,7 +113,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-background">
-            <DashboardHeader user= {user} />
+            <DashboardHeader/>
 
             <div className="container mx-auto p-4 md:p-8 max-w-6xl">
                 {error && (
@@ -177,7 +157,7 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            {/* THE MAGIC: 150 lines of table logic replaced by one component */}
+                            
                             {scanResults.length > 0 && (
                                 <ScanResultsTable 
                                     scanResults={scanResults}

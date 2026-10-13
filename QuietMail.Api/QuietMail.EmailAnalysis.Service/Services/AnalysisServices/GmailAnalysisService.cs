@@ -29,7 +29,9 @@ public class GmailAnalysisService : IEmailActionService
 
     public ProviderType ProviderName => ProviderType.Gmail;
 
-    public async Task TrashAllEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
+
+
+    public async Task<int> TrashEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
     {
         var credential = GoogleCredential.FromAccessToken(accessToken);
         var gmailService = new GmailService(new BaseClientService.Initializer
@@ -38,9 +40,10 @@ public class GmailAnalysisService : IEmailActionService
             ApplicationName = "QuietMail"
         });
 
+        int totalDeleted = 0;
+
         foreach (var sender in senderEmail)
         {
-            //Step 1: Search for all emails from the specified sender
             string? pageToken = null;
             List<string> messageIds = new List<string>();
             do
@@ -61,7 +64,6 @@ public class GmailAnalysisService : IEmailActionService
                 await Task.Delay(50);
             } while (pageToken != null);
 
-            //Step 2: Add a new label "TRASH" and remove the "INBOX" label to effectively delete the emails
             if (messageIds.Any())
             {
                 var batchRequest = new BatchModifyMessagesRequest()
@@ -73,8 +75,11 @@ public class GmailAnalysisService : IEmailActionService
 
                 var deleteRequest = gmailService.Users.Messages.BatchModify(batchRequest, "me");
                 await deleteRequest.ExecuteAsync();
+
+                totalDeleted += messageIds.Count;
             }
         }
+        return totalDeleted;
     }
 
     public async Task UnsubscribeFromSendersAsync(string accessToken, List<string> senders)
@@ -170,15 +175,6 @@ public class GmailAnalysisService : IEmailActionService
         //TODO: Maybe log the response or handle it further
     }
 
-    public Task TrashEmailsFromSenders(string accessToken, List<string> senders)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task UnsubscribeSenders(string accessToken, List<string> senders)
-    {
-        throw new NotImplementedException();
-    }
 
     
 }

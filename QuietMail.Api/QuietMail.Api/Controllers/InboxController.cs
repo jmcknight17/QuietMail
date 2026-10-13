@@ -15,21 +15,10 @@ public class InboxController : ControllerBase
 
     [HttpPost("trash-emails-from-senders")] 
     public async Task<IActionResult> TrashEmailsFromSenders([FromRoute] string provider, [FromBody] InboxActionRequest request)
-    {
-        if (request == null || !request.senders.Any())
-        {
-            return BadRequest("No sender emails provided for trashing.");
-        }
+    { 
+        if (!Request.Cookies.TryGetValue("accessToken", out var accessToken) )
+            return Unauthorized(new { isAuthenticated = false, message = "No active session" });  
 
-        if (!Request.Headers.TryGetValue("Authorization", out var authorization))
-        {
-            return Unauthorized("Missing Authorization header");
-        }
-        var accessToken = authorization.ToString().Split(" ").Last();
-        if (string.IsNullOrEmpty(accessToken))
-        {
-            return Unauthorized("Access token is missing.");
-        }
         try
         {
             var service = _providerHelper.GetEmailActionServiceFromRouteString(provider);
@@ -37,8 +26,9 @@ public class InboxController : ControllerBase
             if (service is null)
                 return BadRequest($"No email action service found for provider: {provider}");
             
-            await service.TrashAllEmailsFromSendersAsync(accessToken, request.senders);
-            return Ok();
+            var deletedCount = await service.TrashEmailsFromSendersAsync(accessToken, request.senders);
+
+            return Ok(new { deletedCount });
         }
         catch (Exception ex)
         {
@@ -98,9 +88,9 @@ public class InboxController : ControllerBase
             if (service is null)
                 return BadRequest($"No email action service found for provider: {provider}");
 
-            await service.TrashAllEmailsFromSendersAsync(accessToken, senders);
+            var deletedCount = await service.TrashEmailsFromSendersAsync(accessToken, senders);
             await service.UnsubscribeFromSendersAsync(accessToken, senders);
-            return Ok();
+            return Ok(new { deletedCount });
         }
         catch (Exception ex)
         {

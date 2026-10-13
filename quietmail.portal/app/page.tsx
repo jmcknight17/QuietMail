@@ -1,16 +1,23 @@
+'use client'
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {BarChart3, Shield, Zap } from "lucide-react"
+import { BarChart3, Shield, Zap } from "lucide-react"
 import Image from "next/image"
 import { DashboardHeader } from "@/components/shared/dashboardHeader"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
-
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5022";
+
+  const handleStartScan = () => {
+    router.push('/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-background">
-
       <DashboardHeader />
 
       <section className="py-20 px-4">
@@ -24,13 +31,28 @@ export default function Home() {
           </p>
 
           <div className="mb-12">
-            <a href={`${apiUrl}/auth/gmail/login`}>
-              <Button size="lg" className="text-lg px-4 py-6 bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Image
-                      src="/google_login.png"  alt="Google Logo" width={30} height={18} className="mr-1"/>
-                Log into Gmail
+            {isAuthenticated ? (
+              <Button 
+                onClick={handleStartScan} 
+                size="lg" 
+                className="text-lg px-4 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Start Scan
               </Button>
-            </a>
+            ) : (
+              <a href={`${apiUrl}/auth/gmail/login`}>
+                <Button size="lg" className="text-lg px-4 py-6 bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Image
+                    src="/google_login.png"  
+                    alt="Google Logo" 
+                    width={30} 
+                    height={18} 
+                    className="mr-1"
+                  />
+                  Log into Gmail
+                </Button>
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -79,5 +101,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

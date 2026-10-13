@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
 import { DashboardStats } from "@/components/dashboard/dashboardStats";
 import { SelectionActionBar } from './selectionActionBar';
@@ -73,7 +73,7 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                     onCheckedChange={handleSelectAllDomains}
                     disabled={isTrashing}
                 />
-                <label htmlFor="select-all-domains" className="text-sm text-muted-foreground font-medium">
+                <label htmlFor="select-all-domains" className="text-sm text-muted-foreground font-medium cursor-pointer">
                     Select All ({scanResults.reduce((acc, curr) => acc + curr.individualSenders.length, 0)} Senders)
                 </label>
             </div>
@@ -90,68 +90,87 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {scanResults.map((result) => (
-                            <React.Fragment key={result.domain}>
-                                <TableRow className="bg-card hover:bg-accent/50 transition-colors">
-                                    <TableCell className="w-12 text-center pr-0">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleRowToggle(result.domain)}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            <ChevronDown className={`h-4 w-4 transition-transform ${expandedRows.has(result.domain) ? 'rotate-180' : ''}`} />
-                                        </Button>
-                                    </TableCell>
-                                    <TableCell className="w-12">
-                                        <Checkbox
-                                            checked={areAllSendersInDomainSelected(result.domain)}
-                                            onCheckedChange={(checked) => handleDomainSelect(result.domain, checked as boolean)}
-                                            disabled={isTrashing}
-                                            className="mr-2 translate-y-[2px] border-2 border-primary "
-                                        />
-                                    </TableCell>
-                                    <TableCell className="font-medium text-foreground">{result.domain}</TableCell>
-                                    <TableCell className="text-muted-foreground">{result.emailCount}</TableCell>
-                                    <TableCell className="text-muted-foreground">{result.openedCount}</TableCell>
-                                </TableRow>
+                        {scanResults.map((result) => {
+                            const isAllSelected = areAllSendersInDomainSelected(result.domain);
 
-                                {expandedRows.has(result.domain) && (
-                                    <TableRow key={`${result.domain}-details`}>
-                                        <TableCell colSpan={5} className="p-0"> 
-                                            <div className="p-4 bg-muted/50 border-t border-border">
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead className="text-xs w-1/2">Email Address</TableHead>
-                                                            <TableHead className="text-xs">Total</TableHead>
-                                                            <TableHead className="text-xs">Opened %</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {result.individualSenders.map((sender) => (
-                                                            <TableRow key={sender.email}>
-                                                                <TableCell className="text-xs">
-                                                                    <Checkbox
-                                                                        checked={selectedIndividualSenders.has(sender.email)}
-                                                                        onCheckedChange={(checked) => handleIndividualSenderSelect(sender.email, checked as boolean)}
-                                                                        disabled={isTrashing}
-                                                                        className="mr-2 translate-y-[2px] border-2 border-primary "
-                                                                    />
-                                                                    {sender.email}
-                                                                </TableCell>
-                                                                <TableCell className="text-xs">{sender.emailCount}</TableCell>
-                                                                <TableCell className="text-xs">{sender.openedPercent.toFixed(0)}%</TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
+                            return (
+                                <React.Fragment key={result.domain}>
+                                    {/* Parent Domain Row */}
+                                    <TableRow 
+                                        className="bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                                        onClick={() => handleDomainSelect(result.domain, !isAllSelected)}
+                                    >
+                                        <TableCell className="w-12 text-center pr-0" onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleRowToggle(result.domain)}
+                                                className="h-8 w-8 p-0"
+                                            >
+                                                <ChevronDown className={`h-4 w-4 transition-transform ${expandedRows.has(result.domain) ? 'rotate-180' : ''}`} />
+                                            </Button>
                                         </TableCell>
+                                        <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
+                                            <Checkbox
+                                                checked={isAllSelected}
+                                                onCheckedChange={(checked) => handleDomainSelect(result.domain, checked as boolean)}
+                                                disabled={isTrashing}
+                                                className="mr-2 translate-y-[2px] border-2 border-primary"
+                                            />
+                                        </TableCell>
+                                        <TableCell className="font-medium text-foreground">{result.domain}</TableCell>
+                                        <TableCell className="text-muted-foreground">{result.emailCount}</TableCell>
+                                        <TableCell className="text-muted-foreground">{result.openedCount}</TableCell>
                                     </TableRow>
-                                )}
-                            </React.Fragment>
-                        ))}
+
+                                    {/* Expanded Child Rows Section */}
+                                    {expandedRows.has(result.domain) && (
+                                        <TableRow key={`${result.domain}-details`}>
+                                            <TableCell colSpan={5} className="p-0"> 
+                                                <div className="p-4 bg-muted/50 border-t border-border">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead className="text-xs w-12"><span className="sr-only">Select</span></TableHead>
+                                                                <TableHead className="text-xs">Email Address</TableHead>
+                                                                <TableHead className="text-xs">Total</TableHead>
+                                                                <TableHead className="text-xs">Opened %</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {result.individualSenders.map((sender) => {
+                                                                const isSenderSelected = selectedIndividualSenders.has(sender.email);
+
+                                                                return (
+                                                                    /* Child Sender Row - Fully Clickable */
+                                                                    <TableRow 
+                                                                        key={sender.email}
+                                                                        className="hover:bg-accent/40 transition-colors cursor-pointer"
+                                                                        onClick={() => handleIndividualSenderSelect(sender.email, !isSenderSelected)}
+                                                                    >
+                                                                        <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
+                                                                            <Checkbox
+                                                                                checked={isSenderSelected}
+                                                                                onCheckedChange={(checked) => handleIndividualSenderSelect(sender.email, checked as boolean)}
+                                                                                disabled={isTrashing}
+                                                                                className="mr-2 translate-y-[2px] border-2 border-primary"
+                                                                            />
+                                                                        </TableCell>
+                                                                        <TableCell className="text-xs font-medium text-foreground">{sender.email}</TableCell>
+                                                                        <TableCell className="text-xs text-muted-foreground">{sender.emailCount}</TableCell>
+                                                                        <TableCell className="text-xs text-muted-foreground">{sender.openedPercent.toFixed(0)}%</TableCell>
+                                                                    </TableRow>
+                                                                );
+                                                            })}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </div>

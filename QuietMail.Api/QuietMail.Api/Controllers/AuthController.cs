@@ -69,7 +69,7 @@ public class AuthController : Controller
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = Request.IsHttps,
+                Secure = true,
                 SameSite = SameSiteMode.None, 
                 Expires = DateTimeOffset.UtcNow.AddHours(1),
                 Path = "/"
@@ -109,8 +109,7 @@ public class AuthController : Controller
     {
         if (!Request.Cookies.TryGetValue("accessToken", out var accessToken) ||
             !Request.Cookies.TryGetValue("provider", out var provider))
-            return Unauthorized(new { isAuthenticated = false, message = "No active session" });
-        
+            return Unauthorized(new { isAuthenticated = false, message = "No active session" });  
 
         try
         {

@@ -1,11 +1,13 @@
-﻿export const trashEmailsFromSenders = async (accessToken: string, senderEmails: string[],provider: string) => {
-    const response = await fetch(`http://localhost:5022/inbox/${provider}/trash-emails-from-senders`, {
+﻿import { TrashEmailResult } from "@/app/dashboard/page"; 
+
+export const trashEmailsFromSenders = async (senderEmails: string[],provider: string): Promise<TrashEmailResult> => {
+    const response = await fetch(`https://localhost:7297/inbox/${provider}/trash-emails-from-senders`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
+        headers:{
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify(senderEmails)
+        credentials: 'include',
+        body: JSON.stringify({Senders : senderEmails})
     });
 
     if (!response.ok) {
@@ -17,11 +19,15 @@
         }
         throw new Error(errorData.message || `Failed to trash emails: ${response.statusText}`);
     }
-    return response.ok;
+    const data = await response.json();
+
+    return {
+    deletedEmails : data.deletedCount ?? 0
+    }
 };
 
 export const unsubscribeFromSender = async (accessToken: string, senderEmails: string[]) => {
-    const response = await fetch('http://localhost:5022/inbox/unsubscribeSenders', {
+    const response = await fetch('https://localhost:7297/inbox/unsubscribeSenders', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
