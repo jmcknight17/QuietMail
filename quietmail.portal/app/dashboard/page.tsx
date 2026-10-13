@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Mail } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
-import { trashEmailsFromSenders, unsubscribeFromSender } from "@/lib/emailHandlingService";
+import { trashEmailsFromSenders, unsubscribeFromSender, unsubscribeAndTrashEmailsFromSenders } from "@/lib/emailHandlingService";
 import { ScanHero } from "@/components/dashboard/scanHero";
-import {DashboardHeader} from "@/components/shared/dashboardHeader";
+import { DashboardHeader } from "@/components/shared/dashboardHeader";
 import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
+import { ActionNotification } from "@/components/shared/actionNotification";
 import { useAuth } from '@/context/AuthContext';
 
 export interface UserProfile {
@@ -20,29 +21,24 @@ export interface UserProfile {
     provider: string;
 }
 
-export interface TrashEmailResult{
-    deletedEmails : number;
-}
-
 export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const {isAuthenticated, provider} = useAuth();
+    const { isAuthenticated, provider } = useAuth();
 
-    const [isResultModalVisible, setIsResultModeVisible] = useState<boolean>(false);
+    const [isNotificationVisible, setIsNotificationVisible] = useState<boolean>(false);
+    const [notificationMessage, setNotificationMessage] = useState<string>('');
+
     const [isTrashing, setIsTrashing] = useState<boolean>(false);
-    const [trashResult, setTrashResult] = useState<TrashEmailResult | null>(null);
-    
     const [isScanning, setIsScanning] = useState<boolean>(false);
-    
     const [scanResults, setScanResults] = useState<ScanResult[]>([]);
     const [error, setError] = useState<string>('');
     const [progress, setProgress] = useState<number>(0);
 
     const handleUnsubscribe = async (senderEmails: string[]) => {
         if (!senderEmails || senderEmails.length === 0) return;
-        
+
         setIsTrashing(true);
         const token = localStorage.getItem('accessToken');
         if (!token) {
@@ -52,10 +48,27 @@ export default function Dashboard() {
         }
         try {
             await unsubscribeFromSender(token, senderEmails);
+            setNotificationMessage(`Successfully trashed from ${senderEmails.length} sender(s)!`);
+            setIsNotificationVisible(true);
             setError('');
         } catch (err: any) {
-            setError(`Failed to trash emails: ${err.message || 'Unknown error'}`);
+            setError(`Failed to unsubscribe: ${err.message || 'Unknown error'}`);
         } finally {
+            setIsTrashing(false);
+        }
+    }
+
+    const handleUnsubscribeAndTrash = async (senderEmails: string[]) => {
+        if (!isAuthenticated) return;
+
+        setIsTrashing(true);
+        try {
+            const response = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
+        }
+        catch (err: any) {
+            setError(`Failed to unsubscribe and trash emails: ${err.message || 'Unknown error'}`);
+        }
+        finally {
             setIsTrashing(false);
         }
     }
@@ -65,8 +78,6 @@ export default function Dashboard() {
         setProgress(0);
         setError('');
         setScanResults([]);
-
-        const provider = localStorage.getItem('provider');
 
         startScan(
             provider,
@@ -80,18 +91,29 @@ export default function Dashboard() {
                 setIsScanning(false);
             },
         );
-    }, []);
-
+    }, [provider]);
 
     const handleTrashSenders = async (senderEmails: string[]) => {
         if (!isAuthenticated) return;
-        
+
         setIsTrashing(true);
         try {
-            console.log(provider);
             const response = await trashEmailsFromSenders(senderEmails, provider || '');
-            setTrashResult(response);
-            setIsResultModeVisible(true);
+
+            setScanResults(prevResults => {
+                return prevResults.map(domainResult => {
+                    const remainingSenders = domainResult.individualSenders.filter(
+                        sender => !senderEmails.includes(sender.email)
+                    );
+                    return {
+                        ...domainResult,
+                        individualSenders: remainingSenders
+                    };
+                }).filter(domainResult => domainResult.individualSenders.length > 0);
+            });
+
+            setNotificationMessage(`Successfully trashed ${response.deletedEmails} emails!`);
+            setIsNotificationVisible(true);
             setError('');
         } catch (err: any) {
             setError(`Failed to trash emails: ${err.message || 'Unknown error'}`);
@@ -99,6 +121,7 @@ export default function Dashboard() {
             setIsTrashing(false);
         }
     };
+
 
     if (!isAuthenticated) {
         return (
@@ -111,9 +134,11 @@ export default function Dashboard() {
         );
     }
 
+
+
     return (
-        <div className="min-h-screen bg-background">
-            <DashboardHeader/>
+        <div className="min-h-screen bg-background relative pb-24">
+            <DashboardHeader />
 
             <div className="container mx-auto p-4 md:p-8 max-w-6xl">
                 {error && (
@@ -123,10 +148,10 @@ export default function Dashboard() {
                 )}
 
                 {scanResults.length === 0 ? (
-                    <ScanHero 
-                        isScanning={isScanning} 
-                        progress={progress} 
-                        onStartScan={handleStartScan} 
+                    <ScanHero
+                        isScanning={isScanning}
+                        progress={progress}
+                        onStartScan={handleStartScan}
                     />
                 ) : (
                     <Card className="border-border bg-card">
@@ -157,19 +182,25 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            
                             {scanResults.length > 0 && (
-                                <ScanResultsTable 
+                                <ScanResultsTable
                                     scanResults={scanResults}
                                     isTrashing={isTrashing}
                                     onTrash={handleTrashSenders}
                                     onUnsubscribe={handleUnsubscribe}
+                                    onUnsubscribeAndTrash={handleUnsubscribeAndTrash}
                                 />
                             )}
                         </CardContent>
                     </Card>
                 )}
             </div>
+
+            <ActionNotification
+                isVisible={isNotificationVisible}
+                message={notificationMessage}
+                onClose={() => setIsNotificationVisible(false)}
+            />
         </div>
     );
 }

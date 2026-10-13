@@ -1,24 +1,29 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction,CardFooter } from '@/components/ui/card';
-import {Inbox, Activity, MailMinus, Badge} from 'lucide-react';
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
-import { ScanResult } from "@lib/types"
+import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { IconTrendingUp } from "@tabler/icons-react";
+import { ScanResult } from "@lib/types";
 
 interface DashboardStatsProps {
-    scanResult : ScanResult[];
+    scanResult: ScanResult[];
 }
 
+export function DashboardStats({ scanResult }: DashboardStatsProps) {
+    const totalEmailsScanned = scanResult.reduce(
+        (acc, domain) => acc + domain.individualSenders.reduce((sAcc, sender) => sAcc + sender.emailCount, 0),
+        0
+    );
 
-export function DashboardStats({scanResult} : DashboardStatsProps){
-
-    const totalEmailsScanned = scanResult.reduce((acc, domain) => acc + domain.emailCount, 0);
-
-    const totalOpenedEmails = scanResult.reduce((acc, domain) => acc + domain.openedCount, 0);
+    const totalOpenedEmails = scanResult.reduce(
+        (acc, domain) => acc + domain.individualSenders.reduce((sAcc, sender) => sAcc + (sender.openedCount || 0), 0),
+        0
+    );
 
     const openedRate = totalEmailsScanned > 0
         ? (totalOpenedEmails / totalEmailsScanned) * 100
         : 0;
 
+    
     const suggestedUnsubscribableSenders = scanResult.reduce((acc, domain) => {
         const domainUnsubCount = domain.individualSenders.filter(sender => sender.isMailList).length;
         return acc + domainUnsubCount;
@@ -26,8 +31,7 @@ export function DashboardStats({scanResult} : DashboardStatsProps){
 
     return (
         <div className="grid gap-4 md:grid-cols-3 mb-8">
-            {/*Card Number one -- Total Emails Scanned*/}
-            <Card>
+           <Card>
                 <CardHeader>
                     <CardDescription>Total Email Count</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -45,17 +49,16 @@ export function DashboardStats({scanResult} : DashboardStatsProps){
                         Trending up this month <IconTrendingUp className="size-4" />
                     </div>
                     <div className="text-muted-foreground">
-                        Visitors for the last 6 months
+                        Across active scanned senders
                     </div>
                 </CardFooter>
             </Card>
 
-            {/*Card Number two -- Percentage opened rate*/}
             <Card>
                 <CardHeader>
                     <CardDescription>Open Rate</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                        {openedRate.toFixed(2)}
+                        {openedRate.toFixed(2)}%
                     </CardTitle>
                     <CardAction>
                         <Badge variant="outline">
@@ -69,13 +72,12 @@ export function DashboardStats({scanResult} : DashboardStatsProps){
                         Trending up this month <IconTrendingUp className="size-4" />
                     </div>
                     <div className="text-muted-foreground">
-                        Visitors for the last 6 months
+                        Engagement ratio
                     </div>
                 </CardFooter>
             </Card>
 
-            {/*Card Number three -- Suggested number of unsubscribable email senders*/}
-            <Card>
+           <Card>
                 <CardHeader>
                     <CardDescription>Number of Unsubscribable Senders</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -93,7 +95,7 @@ export function DashboardStats({scanResult} : DashboardStatsProps){
                         Trending up this month <IconTrendingUp className="size-4" />
                     </div>
                     <div className="text-muted-foreground">
-                        Visitors for the last 6 months
+                        Senders with mailing lists
                     </div>
                 </CardFooter>
             </Card>

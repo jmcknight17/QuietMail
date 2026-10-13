@@ -126,7 +126,6 @@ public class GmailAnalysisService : IEmailActionService
                 string bestHttpLink = null;
                 HttpMethod httpMethod = HttpMethod.Get;
 
-                // Simple heuristic to prefer POST
                 bestHttpLink = unsubscribeUrls.FirstOrDefault(link => IsLikelyHttpPost(link));
                 
                 if (bestHttpLink != null)
@@ -145,6 +144,12 @@ public class GmailAnalysisService : IEmailActionService
             Console.WriteLine($"Error during unsubscribe process: {ex.Message}");
             throw;
         }
+    }
+
+    public async Task<int> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders)
+    {
+        await UnsubscribeFromSendersAsync(accessToken, senders);
+        return await TrashEmailsFromSendersAsync(accessToken, senders);
     }
 
     private async Task<List<string>> GetUnsubscribeUrlsAsync(string? headerValue)

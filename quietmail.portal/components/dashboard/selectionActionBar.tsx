@@ -10,6 +10,7 @@ interface SelectionActionBarProps {
     onClearSelection: () => void;
     onTrash: (emails: string[]) => void;
     onUnsubscribe: (emails: string[]) => void;
+    onUnsubscribeAndTrash: (emails: string[]) => void;
 }
 
 export function SelectionActionBar({
@@ -18,7 +19,9 @@ export function SelectionActionBar({
     isTrashing,
     onClearSelection,
     onTrash,
-    onUnsubscribe
+    onUnsubscribe,
+    onUnsubscribeAndTrash
+
 }: SelectionActionBarProps) {
     if (selectedEmails.size === 0) return null;
 
@@ -59,7 +62,7 @@ export function SelectionActionBar({
                 <div className="h-8 w-[1px] bg-background/20 hidden md:block"></div>
                 
                 <div className="flex items-center gap-2">
-                    <Button 
+                    {/* <Button 
                         variant="ghost" 
                         size="sm" 
                         className="hover:bg-background/20 text-background hover:text-background"
@@ -68,7 +71,7 @@ export function SelectionActionBar({
                     >
                         <Ban className="h-4 w-4 mr-2" />
                         Unsubscribe
-                    </Button>
+                    </Button> */}
                     
                     <Button 
                         variant="destructive" 
@@ -83,10 +86,11 @@ export function SelectionActionBar({
                     <Button 
                         variant="destructive" 
                         size="sm"
-                        onClick={() => onTrash(selectedArray)}
+                        onClick={() => onUnsubscribeAndTrash(selectedArray)}
                         disabled={isTrashing}
                     >
-                        <Bomb className="h-4 w-4 mr-2" />
+                        {/* <Bomb className="h-4 w-4 mr-2" /> */}
+                        <Ban className="h-4 w-4 mr-2" />
                         {isTrashing ? 'Trashing...' : 'Trash And Unsubscribe'}
                     </Button>
 
