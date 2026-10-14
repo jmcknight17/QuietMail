@@ -31,7 +31,7 @@ public class GmailAnalysisService : IEmailActionService
 
 
 
-    public async Task<int> TrashEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
+    public async Task<TrashEmailResultDto> TrashEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
     {
         var credential = GoogleCredential.FromAccessToken(accessToken);
         var gmailService = new GmailService(new BaseClientService.Initializer
@@ -79,10 +79,14 @@ public class GmailAnalysisService : IEmailActionService
                 totalDeleted += messageIds.Count;
             }
         }
-        return totalDeleted;
+        return new TrashEmailResultDto
+        {
+            TotalEmailsTrashed = totalDeleted,
+            TotalSendersTrashed = senderEmail.Count
+        };
     }
 
-    public async Task UnsubscribeFromSendersAsync(string accessToken, List<string> senders)
+    public async Task<UnsubscribeSenderDto> UnsubscribeFromSendersAsync(string accessToken, List<string> senders)
     {
         var credential = GoogleCredential.FromAccessToken(accessToken);
         var gmailService = new GmailService(new BaseClientService.Initializer
@@ -93,6 +97,7 @@ public class GmailAnalysisService : IEmailActionService
 
         try
         {
+            var unsubbedCount = 0;
             foreach (var senderEmail in senders)
             {
                 var listRequest = gmailService.Users.Messages.List("me");
@@ -137,7 +142,14 @@ public class GmailAnalysisService : IEmailActionService
                     throw new InvalidOperationException($"Failed to select an HTTP unsubscribe link for {senderEmail}.");
 
                 await UnsubscribeViaHttp(bestHttpLink, httpMethod);
+                unsubbedCount++;
             }
+
+            return new UnsubscribeSenderDto
+                {
+                    TotalEmailsTrashed = 0,
+                    TotalSendersUnsubscribed = unsubbedCount
+                };
         }
         catch (Exception ex)
         {
@@ -146,10 +158,13 @@ public class GmailAnalysisService : IEmailActionService
         }
     }
 
-    public async Task<int> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders)
+    public async Task<UnsubscribeSenderDto> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders)
     {
-        await UnsubscribeFromSendersAsync(accessToken, senders);
-        return await TrashEmailsFromSendersAsync(accessToken, senders);
+        var unsubscribeResult = await UnsubscribeFromSendersAsync(accessToken, senders);
+        var trashResult = await TrashEmailsFromSendersAsync(accessToken, senders);
+
+        unsubscribeResult.TotalEmailsTrashed = trashResult.TotalEmailsTrashed;
+        return unsubscribeResult;
     }
 
     private async Task<List<string>> GetUnsubscribeUrlsAsync(string? headerValue)
@@ -175,11 +190,16 @@ public class GmailAnalysisService : IEmailActionService
         HttpRequestMessage request = new HttpRequestMessage(method, url);
         request.Headers.Add("User-Agent", "QuietMail-Unsubscribe-Service/1.0");
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        //TODO: Maybe log the response or handle it further
+        try
+        {
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error occurred while unsubscribing via HTTP: {ex.Message}");
+            throw;
+        }
     }
-
-
     
 }

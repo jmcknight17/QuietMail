@@ -22,7 +22,8 @@ export const trashEmailsFromSenders = async (senderEmails: string[], provider: s
     const data = await response.json();
 
     return {
-        deletedEmails: data.deletedCount ?? 0
+        totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
+        totalSendersTrashed: data.totalSendersTrashed ?? 0
     }
 };
 
@@ -48,7 +49,8 @@ export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[
     const data = await response.json();
 
     return {
-        deletedEmails: data.deletedCount ?? 0
+        totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
+        totalSendersTrashed: data.totalSendersTrashed ?? 0
     }
 
 };

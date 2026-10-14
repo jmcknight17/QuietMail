@@ -26,9 +26,9 @@ public class InboxController : ControllerBase
             if (service is null)
                 return BadRequest($"No email action service found for provider: {provider}");
             
-            var deletedCount = await service.TrashEmailsFromSendersAsync(accessToken, request.senders);
+            var result = await service.TrashEmailsFromSendersAsync(accessToken, request.senders);
 
-            return Ok(new { deletedCount });
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -74,12 +74,8 @@ public class InboxController : ControllerBase
         if (senders == null || !senders.Any())
             return BadRequest("No sender emails provided for trashing and unsubscribing.");
 
-        if (!Request.Headers.TryGetValue("Authorization", out var authorization))   
-            return Unauthorized("Missing Authorization header");
-        
-        var accessToken = authorization.ToString().Split(" ").Last();
-        if (string.IsNullOrEmpty(accessToken))
-            return Unauthorized("Access token is missing.");
+        if (!Request.Cookies.TryGetValue("accessToken", out var accessToken) )
+            return Unauthorized(new { isAuthenticated = false, message = "No active session" });  
 
         try
         {
@@ -87,10 +83,9 @@ public class InboxController : ControllerBase
             
             if (service is null)
                 return BadRequest($"No email action service found for provider: {provider}");
-
-            var deletedCount = await service.TrashEmailsFromSendersAsync(accessToken, senders);
-            await service.UnsubscribeFromSendersAsync(accessToken, senders);
-            return Ok(new { deletedCount });
+            
+            var result = await service.UnsubscribeAndTrashEmailsFromSendersAsync(accessToken, senders);
+            return Ok(result);
         }
         catch (Exception ex)
         {

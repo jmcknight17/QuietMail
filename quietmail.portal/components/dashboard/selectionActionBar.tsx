@@ -1,17 +1,7 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Trash2, X, Ban, Bomb } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // 👈 Add this line!
+import { Trash2, X, Ban } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
-
-interface SelectionActionBarProps {
-    scanResults: ScanResult[];
-    selectedEmails: Set<string>;
-    isTrashing: boolean;
-    onClearSelection: () => void;
-    onTrash: (emails: string[]) => void;
-    onUnsubscribe: (emails: string[]) => void;
-    onUnsubscribeAndTrash: (emails: string[]) => void;
-}
 
 export function SelectionActionBar({
     scanResults,
@@ -21,12 +11,12 @@ export function SelectionActionBar({
     onTrash,
     onUnsubscribe,
     onUnsubscribeAndTrash
-
 }: SelectionActionBarProps) {
     if (selectedEmails.size === 0) return null;
 
     let totalEmails = 0;
     let uniqueDomains = 0;
+    let validSendersCount = 0;
 
     scanResults.forEach(domainResult => {
         const selectedInDomain = domainResult.individualSenders.filter(s => 
@@ -35,9 +25,12 @@ export function SelectionActionBar({
         
         if (selectedInDomain.length > 0) {
             uniqueDomains++;
+            validSendersCount += selectedInDomain.length;
             totalEmails += selectedInDomain.reduce((sum, s) => sum + s.emailCount, 0);
         }
     });
+
+    if (validSendersCount === 0) return null;
 
     const selectedArray = Array.from(selectedEmails);
 
@@ -47,14 +40,14 @@ export function SelectionActionBar({
                 
                 <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-sm font-medium">
                     <span className="text-background/90">
-                        <strong className="text-background text-base">{selectedEmails.size}</strong> Senders
+                        <strong className="text-background text-base">{validSendersCount}</strong> Senders
                     </span>
                     <span className="hidden md:inline text-background/90">•</span>
-                    <span className="text-text-background/90">
+                    <span className="text-background/90">
                         <strong className="text-background text-base">{uniqueDomains}</strong> Domains
                     </span>
-                    <span className="hidden md:inline ttext-background/90">•</span>
-                    <span className="text-text-background/90">
+                    <span className="hidden md:inline text-background/90">•</span>
+                    <span className="text-background/90">
                         <strong className="text-background text-base">{totalEmails}</strong> Emails
                     </span>
                 </div>
@@ -62,17 +55,6 @@ export function SelectionActionBar({
                 <div className="h-8 w-[1px] bg-background/20 hidden md:block"></div>
                 
                 <div className="flex items-center gap-2">
-                    {/* <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="hover:bg-background/20 text-background hover:text-background"
-                        onClick={() => onUnsubscribe(selectedArray)}
-                        disabled={isTrashing}
-                    >
-                        <Ban className="h-4 w-4 mr-2" />
-                        Unsubscribe
-                    </Button> */}
-                    
                     <Button 
                         variant="destructive" 
                         size="sm"
@@ -89,7 +71,6 @@ export function SelectionActionBar({
                         onClick={() => onUnsubscribeAndTrash(selectedArray)}
                         disabled={isTrashing}
                     >
-                        {/* <Bomb className="h-4 w-4 mr-2" /> */}
                         <Ban className="h-4 w-4 mr-2" />
                         {isTrashing ? 'Trashing...' : 'Trash And Unsubscribe'}
                     </Button>

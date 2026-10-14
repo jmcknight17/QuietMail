@@ -21,6 +21,11 @@ export interface UserProfile {
     provider: string;
 }
 
+export interface TrashEmailResult {
+    totalEmailsTrashed: number;
+    totalSendersTrashed: number;
+}
+
 export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -63,7 +68,10 @@ export default function Dashboard() {
 
         setIsTrashing(true);
         try {
-            const response = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
+            var result = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
+            setNotificationMessage(`Successfully trashed ${result.totalEmailsTrashed} emails and unsubscribed from ${result.totalSendersTrashed} sender(s)!`);
+            setIsNotificationVisible(true);
+            setError('');
         }
         catch (err: any) {
             setError(`Failed to unsubscribe and trash emails: ${err.message || 'Unknown error'}`);
@@ -112,7 +120,7 @@ export default function Dashboard() {
                 }).filter(domainResult => domainResult.individualSenders.length > 0);
             });
 
-            setNotificationMessage(`Successfully trashed ${response.deletedEmails} emails!`);
+            setNotificationMessage(`Successfully trashed ${response.totalEmailsTrashed} emails from ${response.totalSendersTrashed} sender(s)!`);
             setIsNotificationVisible(true);
             setError('');
         } catch (err: any) {

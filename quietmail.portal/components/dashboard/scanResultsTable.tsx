@@ -6,6 +6,7 @@ import { ChevronDown, Newspaper } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
 import { DashboardStats } from "@/components/dashboard/dashboardStats";
 import { SelectionActionBar } from './selectionActionBar';
+import { useEffect } from 'react';
 
 interface ScanResultsTableProps {
     scanResults: ScanResult[];
@@ -26,6 +27,22 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
         setExpandedRows(newExpandedRows);
     };
 
+    useEffect(() => {
+    const validEmails = new Set(
+        scanResults.flatMap(domain => domain.individualSenders.map(s => s.email))
+    );
+
+    setSelectedIndividualSenders(prev => {
+        const cleaned = new Set<string>();
+        prev.forEach(email => {
+            if (validEmails.has(email)) {
+                cleaned.add(email);
+            }
+        });
+        return cleaned;
+    });
+}, [scanResults]);
+
     const handleDomainSelect = (domain: string, isSelected: boolean) => {
         const newSelectedIndividualSenders = new Set(selectedIndividualSenders);
         const domainResult = scanResults.find(r => r.domain === domain);
@@ -36,6 +53,11 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
             });
         }
         setSelectedIndividualSenders(newSelectedIndividualSenders);
+    };
+
+    const handleTrash = async (emails: string[]) => {
+        await onTrash(emails);
+        setSelectedIndividualSenders(new Set()); 
     };
 
     const handleSelectAllDomains = (isSelected: boolean) => {
@@ -180,7 +202,7 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                 selectedEmails={selectedIndividualSenders}
                 isTrashing={isTrashing}
                 onClearSelection={() => setSelectedIndividualSenders(new Set())}
-                onTrash={onTrash}
+                onTrash={handleTrash}
                 onUnsubscribe={onUnsubscribe}
                 onUnsubscribeAndTrash={onUnsubscribeAndTrash}
             />
