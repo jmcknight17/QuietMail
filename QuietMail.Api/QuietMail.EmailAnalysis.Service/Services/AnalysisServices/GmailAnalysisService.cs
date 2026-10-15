@@ -31,62 +31,38 @@ public class GmailAnalysisService : IEmailActionService
 
 
 
-    public async Task<TrashEmailResultDto> TrashEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
+    public async Task<BatchedSenderActionDto> TrashEmailsFromSendersAsync(string accessToken, List<string> senderEmail)
     {
-        var credential = GoogleCredential.FromAccessToken(accessToken);
-        var gmailService = new GmailService(new BaseClientService.Initializer
-        {
-            HttpClientInitializer = credential,
-            ApplicationName = "QuietMail"
-        });
-
+        var gmailService = await CreateGmailServiceAsync(accessToken);
         int totalDeleted = 0;
+        var details = new List<SenderActionResultDto>();
 
         foreach (var sender in senderEmail)
         {
-            string? pageToken = null;
-            List<string> messageIds = new List<string>();
-            do
+            var result = new SenderActionResultDto { Email = sender };
+            try
             {
-                var countRequest = gmailService.Users.Messages.List("me");
-                countRequest.LabelIds = new[] { "INBOX" };
-                countRequest.Q = $"from:{sender}";
-                countRequest.PageToken = pageToken;
-
-                var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                var countResponse = await countRequest.ExecuteAsync(cancellationTokenSource.Token);
-                if (countResponse.Messages != null)
-                {
-                    messageIds.AddRange(countResponse.Messages.Select(m => m.Id));
-                }
-
-                pageToken = countResponse.NextPageToken;
-                await Task.Delay(50);
-            } while (pageToken != null);
-
-            if (messageIds.Any())
-            {
-                var batchRequest = new BatchModifyMessagesRequest()
-                {
-                    Ids = messageIds.ToList(),
-                    AddLabelIds = new List<string> { "TRASH" },
-                    RemoveLabelIds = new List<string> { "INBOX" }
-                };
-
-                var deleteRequest = gmailService.Users.Messages.BatchModify(batchRequest, "me");
-                await deleteRequest.ExecuteAsync();
-
-                totalDeleted += messageIds.Count;
+                int deletedForSender = await TrashEmailsFromSingleSenderAsync(gmailService, sender, result);
+                totalDeleted += deletedForSender;
+                result.Trashed = true;
             }
+            catch (Exception ex)
+            {
+                result.TrashedError = ex.Message;
+            }
+            details.Add(result);
         }
-        return new TrashEmailResultDto
+
+        return new BatchedSenderActionDto
         {
             TotalEmailsTrashed = totalDeleted,
-            TotalSendersTrashed = senderEmail.Count
+            TotalSendersUnsubscribed = 0,
+            TotalSendersRequested = senderEmail.Count,
+            Details = details
         };
     }
 
-    public async Task<UnsubscribeSenderDto> UnsubscribeFromSendersAsync(string accessToken, List<string> senders)
+    public async Task<BatchedSenderActionDto> UnsubscribeFromSendersAsync(string accessToken, List<string> senders)
     {
         var credential = GoogleCredential.FromAccessToken(accessToken);
         var gmailService = new GmailService(new BaseClientService.Initializer
@@ -97,59 +73,64 @@ public class GmailAnalysisService : IEmailActionService
 
         try
         {
-            var unsubbedCount = 0;
-            foreach (var senderEmail in senders)
+            // var unsubbedCount = 0;
+            // foreach (var senderEmail in senders)
+            // {
+            //     var listRequest = gmailService.Users.Messages.List("me");
+            //     listRequest.Q = $"from:\"{senderEmail}\" has:list-unsubscribe -label:spam -label:trash";
+            //     listRequest.LabelIds = new[] { "INBOX" };
+            //     listRequest.MaxResults = 1;
+
+            //     var listResponse = await listRequest.ExecuteAsync();
+            //     var messages = listResponse.Messages;
+            //     if (messages == null || !messages.Any())
+            //         throw new Exception("No messages found.");
+            //     var messageId = listResponse.Messages?.FirstOrDefault()?.Id;
+
+            //     if (string.IsNullOrEmpty(messageId))
+            //     {
+            //         throw new InvalidOperationException($"No recent unsubscribable email found from {senderEmail} with 'List-Unsubscribe' header.");
+            //     }
+
+            //     var message = await gmailService.Users.Messages.Get(messageId, messageId).ExecuteAsync();
+            //     if (message.Payload?.Headers == null)
+            //     {
+            //         throw new InvalidOperationException($"Email with ID {messageId} has no headers.");
+            //     }
+            //     var listUnsubscribeHeader = message.Payload.Headers
+            //         .FirstOrDefault(h => h.Name.Equals("List-Unsubscribe", StringComparison.OrdinalIgnoreCase))?.Value;
+
+            //     var unsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
+            //     if (unsubscribeUrls == null || !unsubscribeUrls.Any())
+            //         throw new Exception("No unsubscribe URLs found in the 'List-Unsubscribe' header.");
+
+            //     string bestHttpLink = null;
+            //     HttpMethod httpMethod = HttpMethod.Get;
+
+            //     bestHttpLink = unsubscribeUrls.FirstOrDefault(link => IsLikelyHttpPost(link));
+
+            //     if (bestHttpLink != null)
+            //         httpMethod = HttpMethod.Post;
+            //     else
+            //         bestHttpLink = unsubscribeUrls.FirstOrDefault(); 
+
+            //     if (string.IsNullOrEmpty(bestHttpLink))
+            //         throw new InvalidOperationException($"Failed to select an HTTP unsubscribe link for {senderEmail}.");
+
+            //     await UnsubscribeViaHttp(bestHttpLink, httpMethod);
+            //     unsubbedCount++;
+            // }
+
+            // return new UnsubscribeSenderDto
+            //     {
+            //         TotalEmailsTrashed = 0,
+            //         TotalSendersUnsubscribed = unsubbedCount
+            //     };
+            return new BatchedSenderActionDto
             {
-                var listRequest = gmailService.Users.Messages.List("me");
-                listRequest.Q = $"from:\"{senderEmail}\" has:list-unsubscribe -label:spam -label:trash";
-                listRequest.LabelIds = new[] { "INBOX" };
-                listRequest.MaxResults = 1;
-                
-                var listResponse = await listRequest.ExecuteAsync();
-                var messages = listResponse.Messages;
-                if (messages == null || !messages.Any())
-                    throw new Exception("No messages found.");
-                var messageId = listResponse.Messages?.FirstOrDefault()?.Id;
-
-                if (string.IsNullOrEmpty(messageId))
-                {
-                    throw new InvalidOperationException($"No recent unsubscribable email found from {senderEmail} with 'List-Unsubscribe' header.");
-                }
-
-                var message = await gmailService.Users.Messages.Get(messageId, messageId).ExecuteAsync();
-                if (message.Payload?.Headers == null)
-                {
-                    throw new InvalidOperationException($"Email with ID {messageId} has no headers.");
-                }
-                var listUnsubscribeHeader = message.Payload.Headers
-                    .FirstOrDefault(h => h.Name.Equals("List-Unsubscribe", StringComparison.OrdinalIgnoreCase))?.Value;
-                
-                var unsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
-                if (unsubscribeUrls == null || !unsubscribeUrls.Any())
-                    throw new Exception("No unsubscribe URLs found in the 'List-Unsubscribe' header.");
-                
-                string bestHttpLink = null;
-                HttpMethod httpMethod = HttpMethod.Get;
-
-                bestHttpLink = unsubscribeUrls.FirstOrDefault(link => IsLikelyHttpPost(link));
-                
-                if (bestHttpLink != null)
-                    httpMethod = HttpMethod.Post;
-                else
-                    bestHttpLink = unsubscribeUrls.FirstOrDefault(); 
-
-                if (string.IsNullOrEmpty(bestHttpLink))
-                    throw new InvalidOperationException($"Failed to select an HTTP unsubscribe link for {senderEmail}.");
-
-                await UnsubscribeViaHttp(bestHttpLink, httpMethod);
-                unsubbedCount++;
-            }
-
-            return new UnsubscribeSenderDto
-                {
-                    TotalEmailsTrashed = 0,
-                    TotalSendersUnsubscribed = unsubbedCount
-                };
+                TotalEmailsTrashed = 0,
+                TotalSendersUnsubscribed = senders.Count
+            };
         }
         catch (Exception ex)
         {
@@ -158,13 +139,130 @@ public class GmailAnalysisService : IEmailActionService
         }
     }
 
-    public async Task<UnsubscribeSenderDto> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders)
+    public async Task<BatchedSenderActionDto> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders)
     {
-        var unsubscribeResult = await UnsubscribeFromSendersAsync(accessToken, senders);
-        var trashResult = await TrashEmailsFromSendersAsync(accessToken, senders);
+        var gmailService = await CreateGmailServiceAsync(accessToken);
+        var response = new BatchedSenderActionDto { TotalSendersRequested = senders.Count };
 
-        unsubscribeResult.TotalEmailsTrashed = trashResult.TotalEmailsTrashed;
-        return unsubscribeResult;
+
+        foreach (var sender in senders)
+        {
+            var result = new SenderActionResultDto { Email = sender };
+            try
+            {
+                bool successfullyUnsubscribed = await UnsubscribeSingleSenderAsync(gmailService, sender, result);
+
+                if (successfullyUnsubscribed)
+                {
+                    result.Unsubscribed = true;
+                    response.TotalSendersUnsubscribed++;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.UnsubscribedError = $"Unsubscribe failed: {ex.Message}";
+                
+            }
+
+            try
+            {
+                int trashedCount = await TrashEmailsFromSingleSenderAsync(gmailService, sender, result);
+                if (trashedCount > 0)
+                {
+                    result.Trashed = true;
+                    response.TotalEmailsTrashed += trashedCount;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.TrashedError = $"Trash failed: {ex.Message}";
+            }
+        }
+
+        return response;
+    }
+
+    private async Task<int> TrashEmailsFromSingleSenderAsync(GmailService gmailService, string sender, SenderActionResultDto result)
+    {
+        string? pageToken = null;
+        List<string> messageIds = new List<string>();
+        do
+        {
+            var countRequest = gmailService.Users.Messages.List("me");
+            countRequest.LabelIds = new[] { "INBOX" };
+            countRequest.Q = $"from:{sender}";
+            countRequest.PageToken = pageToken;
+
+            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var countResponse = await countRequest.ExecuteAsync(cancellationTokenSource.Token);
+            if (countResponse.Messages != null)
+            {
+                messageIds.AddRange(countResponse.Messages.Select(m => m.Id));
+            }
+
+            pageToken = countResponse.NextPageToken;
+            await Task.Delay(50);
+        } while (pageToken != null);
+
+        if (messageIds.Any())
+        {
+            var batchRequest = new BatchModifyMessagesRequest()
+            {
+                Ids = messageIds.ToList(),
+                AddLabelIds = new List<string> { "TRASH" },
+                RemoveLabelIds = new List<string> { "INBOX" }
+            };
+
+            var deleteRequest = gmailService.Users.Messages.BatchModify(batchRequest, "me");
+            await deleteRequest.ExecuteAsync();
+
+        }
+
+        return messageIds.Count;
+    }
+
+    private async Task<bool> UnsubscribeSingleSenderAsync(GmailService gmailService, string senderEmail, SenderActionResultDto result)
+    {
+        var listRequest = gmailService.Users.Messages.List("me");
+        listRequest.Q = $"from:\"{senderEmail}\" -label:spam -label:trash";
+        listRequest.LabelIds = new[] { "INBOX" };
+        listRequest.MaxResults = 1;
+
+        var listResponse = await listRequest.ExecuteAsync();
+        var messageId = listResponse.Messages?.FirstOrDefault()?.Id;
+
+        if (string.IsNullOrEmpty(messageId))
+        {
+            result.UnsubscribedError = "No messages found to check for headers.";
+            return false;
+        }
+
+        var message = await gmailService.Users.Messages.Get("me", messageId).ExecuteAsync();
+        var listUnsubscribeHeader = message.Payload?.Headers
+            ?.FirstOrDefault(h => h.Name.Equals("List-Unsubscribe", StringComparison.OrdinalIgnoreCase))?.Value;
+
+        if (string.IsNullOrEmpty(listUnsubscribeHeader))
+        {
+            result.UnsubscribedError = "Not a mailing list (no List-Unsubscribe header).";
+            return false;
+        }
+
+        var unsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
+        if (unsubscribeUrls == null || !unsubscribeUrls.Any())
+        {
+            throw new InvalidOperationException("Mailing list header found, but no valid links extracted.");
+        }
+
+        string? bestHttpLink = unsubscribeUrls.FirstOrDefault(IsLikelyHttpPost) ?? unsubscribeUrls.FirstOrDefault();
+        if (string.IsNullOrEmpty(bestHttpLink))
+        {
+            throw new InvalidOperationException("Mailing list header found, but failed to select a valid HTTP link.");
+        }
+
+        HttpMethod method = IsLikelyHttpPost(bestHttpLink) ? HttpMethod.Post : HttpMethod.Get;
+        await UnsubscribeViaHttp(bestHttpLink, method);
+
+        return true;
     }
 
     private async Task<List<string>> GetUnsubscribeUrlsAsync(string? headerValue)
@@ -177,14 +275,24 @@ public class GmailAnalysisService : IEmailActionService
         }
         return links;
     }
-    
+
     private bool IsLikelyHttpPost(string url)
     {
         return url.Contains("post", StringComparison.OrdinalIgnoreCase) ||
                url.Contains("confirm", StringComparison.OrdinalIgnoreCase) ||
                url.Contains("unsubscribe_confirm", StringComparison.OrdinalIgnoreCase);
     }
-    
+
+    private async Task<GmailService> CreateGmailServiceAsync(string accessToken)
+    {
+        var credential = GoogleCredential.FromAccessToken(accessToken);
+        return new GmailService(new BaseClientService.Initializer
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = "QuietMail"
+        });
+    }
+
     private async Task UnsubscribeViaHttp(string url, HttpMethod method)
     {
         HttpRequestMessage request = new HttpRequestMessage(method, url);
@@ -201,5 +309,5 @@ public class GmailAnalysisService : IEmailActionService
             throw;
         }
     }
-    
+
 }

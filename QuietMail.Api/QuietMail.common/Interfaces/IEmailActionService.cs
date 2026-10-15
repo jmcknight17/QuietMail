@@ -4,7 +4,7 @@ namespace QuietMail.Api.Interfaces;
 public interface IEmailActionService
 {
     ProviderType ProviderName{get;}
-    Task<TrashEmailResultDto> TrashEmailsFromSendersAsync(string accessToken, List<string> senders);
-    Task<UnsubscribeSenderDto> UnsubscribeFromSendersAsync(string accessToken, List<string> senders);
-    Task<UnsubscribeSenderDto> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders);
+    Task<BatchedSenderActionDto> TrashEmailsFromSendersAsync(string accessToken, List<string> senders);
+    Task<BatchedSenderActionDto> UnsubscribeFromSendersAsync(string accessToken, List<string> senders);
+    Task<BatchedSenderActionDto> UnsubscribeAndTrashEmailsFromSendersAsync(string accessToken, List<string> senders);
 }
