@@ -250,13 +250,25 @@ public class GmailAnalysisService : IEmailActionService
         var unsubscribeUrls = await GetUnsubscribeUrlsAsync(listUnsubscribeHeader);
         if (unsubscribeUrls == null || !unsubscribeUrls.Any())
         {
-            throw new InvalidOperationException("Mailing list header found, but no valid links extracted.");
+            result.UnsubscribedError = "Mailing list header found, but no valid links extracted.";
+            return false;
         }
 
-        string? bestHttpLink = unsubscribeUrls.FirstOrDefault(IsLikelyHttpPost) ?? unsubscribeUrls.FirstOrDefault();
+        var httpUrls = unsubscribeUrls
+        .Where(u => u.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+        if (!httpUrls.Any())
+        {
+            result.UnsubscribedError = "Mailing list header found, but no valid HTTP links extracted.";
+            return false;
+        }
+
+        string? bestHttpLink = httpUrls.FirstOrDefault(IsLikelyHttpPost) ?? httpUrls.FirstOrDefault();
         if (string.IsNullOrEmpty(bestHttpLink))
         {
-            throw new InvalidOperationException("Mailing list header found, but failed to select a valid HTTP link.");
+            result.UnsubscribedError = "Mailing list header found, but failed to select a valid HTTP link.";
+            return false;
         }
 
         HttpMethod method = IsLikelyHttpPost(bestHttpLink) ? HttpMethod.Post : HttpMethod.Get;
