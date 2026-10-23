@@ -21,9 +21,20 @@ export interface UserProfile {
     provider: string;
 }
 
-export interface TrashEmailResult {
+interface SenderActionResult {
+    email: string;
+    unsubscribed: boolean;
+    trashed: boolean;
+    unsubscribedError?: string;
+    trashedError?: string;
+}
+
+export interface BatchedSenderActionResult {
     totalEmailsTrashed: number;
-    totalSendersTrashed: number;
+    totalSendersUnsubscribed: number;
+    totalSendersRequested: number;
+    details: SenderActionResult[];
+    hasErrors: boolean;
 }
 
 export default function Dashboard() {

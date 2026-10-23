@@ -1,6 +1,6 @@
-﻿import { TrashEmailResult } from "@/app/dashboard/page";
+﻿import { BatchedSenderActionResult } from "@/app/dashboard/page";
 
-export const trashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<TrashEmailResult> => {
+export const trashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
     const response = await fetch(`https://localhost:7297/inbox/${provider}/trash-emails-from-senders`, {
         method: 'POST',
         headers: {
@@ -23,11 +23,14 @@ export const trashEmailsFromSenders = async (senderEmails: string[], provider: s
 
     return {
         totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
-        totalSendersTrashed: data.totalSendersTrashed ?? 0
+        totalSendersUnsubscribed: data.totalSendersUnsubscribed ?? 0,
+        totalSendersRequested: data.totalSendersRequested ?? 0,
+        details: data.details ?? [],
+        hasErrors: data.hasErrors ?? false
     }
 };
 
-export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<TrashEmailResult> => {
+export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
     const response = await fetch(`https://localhost:7297/inbox/${provider}/trashAndUnsubscribeSenders`, {
         method: 'POST',
         headers: {
@@ -50,7 +53,10 @@ export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[
 
     return {
         totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
-        totalSendersTrashed: data.totalSendersTrashed ?? 0
+        totalSendersUnsubscribed: data.totalSendersUnsubscribed ?? 0,
+        totalSendersRequested: data.totalSendersRequested ?? 0,
+        details: data.details ?? [],
+        hasErrors: data.hasErrors ?? false
     }
 
 };
