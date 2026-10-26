@@ -1,4 +1,20 @@
-﻿import { BatchedSenderActionResult } from "@/app/dashboard/page";
+﻿import { BatchedSenderActionResult, SenderActionResult } from "@/app/dashboard/page";
+
+const mapBatchedResponse = (data: any): BatchedSenderActionResult => {
+    return {
+        totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
+        totalSendersUnsubscribed: data.totalSendersUnsubscribed ?? 0,
+        totalSendersRequested: data.totalSendersRequested ?? 0,
+        hasErrors: data.hasPartialFailures ?? data.hasErrors ?? false,
+        details: (data.details || []).map((d: any): SenderActionResult => ({
+            email: d.email || d.senderEmail || '',
+            unsubscribed: d.unsubscribed ?? false,
+            trashed: d.trashed ?? false,
+            unsubscribedError: d.unsubscribeError || d.unsubscribedError || undefined,
+            trashedError: d.trashError || d.trashedError || undefined,
+        }))
+    };
+};
 
 export const trashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
     const response = await fetch(`https://localhost:7297/inbox/${provider}/trash-emails-from-senders`, {
@@ -20,14 +36,7 @@ export const trashEmailsFromSenders = async (senderEmails: string[], provider: s
         throw new Error(errorData.message || `Failed to trash emails: ${response.statusText}`);
     }
     const data = await response.json();
-
-    return {
-        totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
-        totalSendersUnsubscribed: data.totalSendersUnsubscribed ?? 0,
-        totalSendersRequested: data.totalSendersRequested ?? 0,
-        details: data.details ?? [],
-        hasErrors: data.hasErrors ?? false
-    }
+    return mapBatchedResponse(data);
 };
 
 export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
@@ -50,15 +59,7 @@ export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[
         throw new Error(errorData.message || `Failed to trash emails: ${response.statusText}`);
     }
     const data = await response.json();
-
-    return {
-        totalEmailsTrashed: data.totalEmailsTrashed ?? 0,
-        totalSendersUnsubscribed: data.totalSendersUnsubscribed ?? 0,
-        totalSendersRequested: data.totalSendersRequested ?? 0,
-        details: data.details ?? [],
-        hasErrors: data.hasErrors ?? false
-    }
-
+    return mapBatchedResponse(data);
 };
 
 export const unsubscribeFromSender = async (accessToken: string, senderEmails: string[]) => {

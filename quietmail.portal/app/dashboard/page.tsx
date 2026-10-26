@@ -21,7 +21,7 @@ export interface UserProfile {
     provider: string;
 }
 
-interface SenderActionResult {
+export interface SenderActionResult {
     email: string;
     unsubscribed: boolean;
     trashed: boolean;
