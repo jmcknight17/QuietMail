@@ -45,6 +45,7 @@ export default function Dashboard() {
 
     const [isNotificationVisible, setIsNotificationVisible] = useState<boolean>(false);
     const [notificationMessage, setNotificationMessage] = useState<string>('');
+    const [notificationDetails, setNotificationDetails] = useState<SenderActionResult[] | null>(null);
 
     const [isTrashing, setIsTrashing] = useState<boolean>(false);
     const [isScanning, setIsScanning] = useState<boolean>(false);
@@ -74,24 +75,6 @@ export default function Dashboard() {
         }
     }
 
-    const handleUnsubscribeAndTrash = async (senderEmails: string[]) => {
-        if (!isAuthenticated) return;
-
-        setIsTrashing(true);
-        try {
-            var result = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
-            setNotificationMessage(`Successfully trashed ${result.totalEmailsTrashed} emails and unsubscribed from ${result.totalSendersTrashed} sender(s)!`);
-            setIsNotificationVisible(true);
-            setError('');
-        }
-        catch (err: any) {
-            setError(`Failed to unsubscribe and trash emails: ${err.message || 'Unknown error'}`);
-        }
-        finally {
-            setIsTrashing(false);
-        }
-    }
-
     const handleStartScan = useCallback(() => {
         setIsScanning(true);
         setProgress(0);
@@ -117,12 +100,18 @@ export default function Dashboard() {
 
         setIsTrashing(true);
         try {
-            const response = await trashEmailsFromSenders(senderEmails, provider || '');
+            const result = await trashEmailsFromSenders(senderEmails, provider || '');
+            const successfulEmails = new Set(
+                result.details.filter(d => d.trashed).map(d => d.email)
+            );
+
+            console.log('Successful emails trashed:', successfulEmails);
+            
 
             setScanResults(prevResults => {
                 return prevResults.map(domainResult => {
                     const remainingSenders = domainResult.individualSenders.filter(
-                        sender => !senderEmails.includes(sender.email)
+                        sender => !successfulEmails.has(sender.email)
                     );
                     return {
                         ...domainResult,
@@ -131,7 +120,8 @@ export default function Dashboard() {
                 }).filter(domainResult => domainResult.individualSenders.length > 0);
             });
 
-            setNotificationMessage(`Successfully trashed ${response.totalEmailsTrashed} emails from ${response.totalSendersTrashed} sender(s)!`);
+            setNotificationDetails(result.details);
+            setNotificationMessage(`Successfully trashed ${result.totalEmailsTrashed} emails!`);
             setIsNotificationVisible(true);
             setError('');
         } catch (err: any) {
@@ -140,6 +130,43 @@ export default function Dashboard() {
             setIsTrashing(false);
         }
     };
+
+    const handleUnsubscribeAndTrash = async (senderEmails: string[]) => {
+        if (!isAuthenticated) return;
+
+        setIsTrashing(true);
+        try {
+            var result = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
+            console.log(result.details);
+
+            const successfulEmails = new Set(
+                result.details.filter(d => d.trashed).map(d => d.email)
+            );
+
+            setScanResults(prevResults => {
+                return prevResults.map(domainResult => {
+                    const remainingSenders = domainResult.individualSenders.filter(
+                        sender => !successfulEmails.has(sender.email)
+                    );
+                    return {
+                        ...domainResult,
+                        individualSenders: remainingSenders
+                    };
+                }).filter(domainResult => domainResult.individualSenders.length > 0);
+            });
+
+            setNotificationDetails(result.details);
+            setNotificationMessage(`Successfully trashed ${result.totalEmailsTrashed} emails and unsubscribed from ${result.totalSendersTrashed} sender(s)!`);
+            setIsNotificationVisible(true);
+            setError('');
+        }
+        catch (err: any) {
+            setError(`Failed to unsubscribe and trash emails: ${err.message || 'Unknown error'}`);
+        }
+        finally {
+            setIsTrashing(false);
+        }
+    }
 
 
     if (!isAuthenticated) {
@@ -208,6 +235,7 @@ export default function Dashboard() {
                                     onTrash={handleTrashSenders}
                                     onUnsubscribe={handleUnsubscribe}
                                     onUnsubscribeAndTrash={handleUnsubscribeAndTrash}
+                                    isNotificationVisible={isNotificationVisible}
                                 />
                             )}
                         </CardContent>
@@ -218,6 +246,7 @@ export default function Dashboard() {
             <ActionNotification
                 isVisible={isNotificationVisible}
                 message={notificationMessage}
+                notificationDetails={notificationDetails}
                 onClose={() => setIsNotificationVisible(false)}
             />
         </div>

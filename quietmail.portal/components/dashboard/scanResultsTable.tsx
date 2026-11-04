@@ -14,9 +14,10 @@ interface ScanResultsTableProps {
     onTrash: (senderEmails: string[]) => void;
     onUnsubscribe: (senderEmails: string[]) => void;
     onUnsubscribeAndTrash: (senderEmails: string[]) => void;
+    isNotificationVisible: boolean;
 }
 
-export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscribe, onUnsubscribeAndTrash }: ScanResultsTableProps) {
+export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscribe, onUnsubscribeAndTrash, isNotificationVisible }: ScanResultsTableProps) {
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [selectedIndividualSenders, setSelectedIndividualSenders] = useState<Set<string>>(new Set());
 
@@ -28,20 +29,20 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
     };
 
     useEffect(() => {
-    const validEmails = new Set(
-        scanResults.flatMap(domain => domain.individualSenders.map(s => s.email))
-    );
+        const validEmails = new Set(
+            scanResults.flatMap(domain => domain.individualSenders.map(s => s.email))
+        );
 
-    setSelectedIndividualSenders(prev => {
-        const cleaned = new Set<string>();
-        prev.forEach(email => {
-            if (validEmails.has(email)) {
-                cleaned.add(email);
-            }
+        setSelectedIndividualSenders(prev => {
+            const cleaned = new Set<string>();
+            prev.forEach(email => {
+                if (validEmails.has(email)) {
+                    cleaned.add(email);
+                }
+            });
+            return cleaned;
         });
-        return cleaned;
-    });
-}, [scanResults]);
+    }, [scanResults]);
 
     const handleDomainSelect = (domain: string, isSelected: boolean) => {
         const newSelectedIndividualSenders = new Set(selectedIndividualSenders);
@@ -57,8 +58,12 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
 
     const handleTrash = async (emails: string[]) => {
         await onTrash(emails);
-        setSelectedIndividualSenders(new Set()); 
     };
+
+    const handleUnsubscribeAndTrash = async (emails: string[]) => {
+        await onUnsubscribeAndTrash(emails);
+    
+    }
 
     const handleSelectAllDomains = (isSelected: boolean) => {
         const newSelectedIndividualSenders = new Set<string>();
@@ -118,7 +123,6 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
 
                             return (
                                 <React.Fragment key={result.domain}>
-                                    {/* Parent Domain Row */}
                                     <TableRow
                                         className="bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                                         onClick={() => handleDomainSelect(result.domain, !isAllSelected)}
@@ -146,7 +150,6 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                                         <TableCell className="text-muted-foreground">{result.openedCount}</TableCell>
                                     </TableRow>
 
-                                    {/* Expanded Child Rows Section */}
                                     {expandedRows.has(result.domain) && (
                                         <TableRow key={`${result.domain}-details`}>
                                             <TableCell colSpan={5} className="p-0">
@@ -196,16 +199,18 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                     </TableBody>
                 </Table>
             </div>
-
-            <SelectionActionBar
-                scanResults={scanResults}
-                selectedEmails={selectedIndividualSenders}
-                isTrashing={isTrashing}
-                onClearSelection={() => setSelectedIndividualSenders(new Set())}
-                onTrash={handleTrash}
-                onUnsubscribe={onUnsubscribe}
-                onUnsubscribeAndTrash={onUnsubscribeAndTrash}
-            />
+            {!isNotificationVisible && selectedIndividualSenders.size > 0 && (
+                <SelectionActionBar
+                    scanResults={scanResults}
+                    selectedEmails={selectedIndividualSenders}
+                    isTrashing={isTrashing}
+                    onClearSelection={() => setSelectedIndividualSenders(new Set())}
+                    onTrash={handleTrash}
+                    onUnsubscribe={onUnsubscribe}
+                    onUnsubscribeAndTrash={handleUnsubscribeAndTrash}
+                />
+            )
+            }
         </div>
     );
 }

@@ -1,4 +1,6 @@
 ﻿import { BatchedSenderActionResult, SenderActionResult } from "@/app/dashboard/page";
+import {MOCK_EMAIL_RESPONSES} from "@/lib/mocks/emailMocks";
+import { CONFIG } from "@/lib/config";
 
 const mapBatchedResponse = (data: any): BatchedSenderActionResult => {
     return {
@@ -17,6 +19,10 @@ const mapBatchedResponse = (data: any): BatchedSenderActionResult => {
 };
 
 export const trashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
+
+    if (CONFIG.useMockData) {
+        return MOCK_EMAIL_RESPONSES.partialFailure;
+    }
     const response = await fetch(`https://localhost:7297/inbox/${provider}/trash-emails-from-senders`, {
         method: 'POST',
         headers: {
@@ -40,6 +46,12 @@ export const trashEmailsFromSenders = async (senderEmails: string[], provider: s
 };
 
 export const unsubscribeAndTrashEmailsFromSenders = async (senderEmails: string[], provider: string): Promise<BatchedSenderActionResult> => {
+
+    if (CONFIG.useMockData) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return MOCK_EMAIL_RESPONSES.partialFailure;
+    }
+
     const response = await fetch(`https://localhost:7297/inbox/${provider}/trashAndUnsubscribeSenders`, {
         method: 'POST',
         headers: {

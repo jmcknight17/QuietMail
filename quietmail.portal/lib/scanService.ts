@@ -1,4 +1,7 @@
 ﻿import * as signalR from "@microsoft/signalr";
+import {CONFIG} from "@/lib/config";
+import {MOCK_SCAN_RESULTS} from "@/lib/mocks/scanResultMocks";
+
 export const startScan = (
   provider: string,
   onProgress: (progress: number) => void,
@@ -22,6 +25,10 @@ export const startScan = (
 
   const startConnectionAndScan = async () => {
     try {
+      if (CONFIG.useMockData) {
+        onComplete(MOCK_SCAN_RESULTS);
+        return;
+      }
       await connection.start();
       const connectionId = connection.connectionId;
 
