@@ -131,13 +131,41 @@ export default function Dashboard() {
         }
     };
 
+    const buildNotificationMessage = (result: BatchedSenderActionResult): string => {
+        const successfulEmails = new Set(
+                result.details.filter(d => d.trashed).map(d => d.email)
+            );
+            const successfulUnsubscribes = new Set(
+                result.details.filter(d => d.unsubscribed && !d.unsubscribedError).map(d => d.email)
+            );
+
+            //Change this message to take in the action of the user to not show unsub logic if they only trash emails. 
+
+            const messageParts = [];
+
+            if (successfulEmails.size > 0) {
+                messageParts.push(`Successfully trashed ${result.totalEmailsTrashed} email${result.totalEmailsTrashed > 1 ? 's' : ''}`);
+            }else{
+                messageParts.push(`Failed to trash emails`);
+            }
+
+            if (successfulUnsubscribes.size > 0) {
+                messageParts.push(`Unsubscribed from ${successfulUnsubscribes.size} sender${successfulUnsubscribes.size > 1 ? 's' : ''}`);
+            }else{
+                messageParts.push(`Failed to unsubscribe from senders`);
+            }
+
+            return messageParts.join(' - ');
+    }
+
     const handleUnsubscribeAndTrash = async (senderEmails: string[]) => {
         if (!isAuthenticated) return;
 
         setIsTrashing(true);
         try {
             var result = await unsubscribeAndTrashEmailsFromSenders(senderEmails, provider || '');
-            console.log(result.details);
+
+            const notificationMsg = buildNotificationMessage(result);
 
             const successfulEmails = new Set(
                 result.details.filter(d => d.trashed).map(d => d.email)
@@ -154,9 +182,8 @@ export default function Dashboard() {
                     };
                 }).filter(domainResult => domainResult.individualSenders.length > 0);
             });
-
+            setNotificationMessage(notificationMsg);
             setNotificationDetails(result.details);
-            setNotificationMessage(`Successfully trashed ${result.totalEmailsTrashed} emails and unsubscribed from ${result.totalSendersTrashed} sender(s)!`);
             setIsNotificationVisible(true);
             setError('');
         }

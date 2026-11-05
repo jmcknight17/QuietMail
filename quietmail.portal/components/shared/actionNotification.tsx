@@ -42,7 +42,7 @@ export function ActionNotification({
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-full max-w-[850px] px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-max max-w-[850px] px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
             <div
                 className={`bg-foreground text-background shadow-2xl transition-all duration-200 border border-border/20 ${isExpanded ? 'rounded-2xl p-4' : 'rounded-full px-6 py-3'
                     }`}
@@ -56,8 +56,8 @@ export function ActionNotification({
                             <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
                         )}
 
-                        <span className="text-sm font-medium text-background/90 truncate">
-                            {message} {hasFailures && `(${failures.length} issue${failures.length > 1 ? 's' : ''})`}
+                        <span className="text-sm font-medium text-background/90 whitespace-nowrap">
+                            {message}
                         </span>
                     </div>
 
@@ -66,10 +66,12 @@ export function ActionNotification({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 px-2 text-xs text-background/80 hover:text-background hover:bg-background/20"
+                                className="h-7 px-2 text-s text-background/80 hover:text-background hover:bg-background/20"
                                 onClick={() => setIsExpanded(!isExpanded)}
                             >
-                                {isExpanded ? 'Hide' : 'Details'}
+                                {isExpanded ? 'Hide' : <span className="text-red-400">
+                                    ({failures.length} issue{failures.length > 1 ? 's' : ''})
+                                </span>}
                                 {isExpanded ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
                             </Button>
                         )}
@@ -92,12 +94,12 @@ export function ActionNotification({
                                 <div className="font-semibold truncate">{item.email}</div>
                                 {item.unsubscribedError && (
                                     <div className="text-red-300 mt-0.5">
-                                        <strong>Unsub:</strong> {item.unsubscribedError}
+                                        <strong>Unsubscribe: </strong> {item.unsubscribedError}
                                     </div>
                                 )}
                                 {item.trashedError && (
                                     <div className="text-red-300 mt-0.5">
-                                        <strong>Trash:</strong> {item.trashedError}
+                                        <strong>Trash: </strong> {item.trashedError}
                                     </div>
                                 )}
                             </div>

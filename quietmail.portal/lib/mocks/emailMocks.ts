@@ -2,13 +2,13 @@ import { BatchedSenderActionResult } from "@/app/dashboard/page";
 
 export const MOCK_EMAIL_RESPONSES = {
     partialFailure: {
-        totalEmailsTrashed: 4,
+        totalEmailsTrashed: 1,
         totalSendersUnsubscribed: 1,
         totalSendersRequested: 3,
-        hasErrors: false,
+        hasErrors: true,
         details: [
-            { email: "daily@newsletter.techcrunch.com", trashed: false, unsubscribed: true, trashedError: "Failed to trash emails." },
-            { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: false, unsubscribedError: "Only mailto: links found." },
+            { email: "daily@newsletter.techcrunch.com", trashed: true, unsubscribed: false, trashedError: "Failed to delete emails due to API error", unsubscribedError: "Failed to unsubscribe due to API error" },
+            { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: true},
         ]
     },
     noFailures:{
@@ -19,6 +19,16 @@ export const MOCK_EMAIL_RESPONSES = {
         details: [
             { email: "daily@newsletter.techcrunch.com", trashed: true, unsubscribed: true },
             { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: true },
+        ]
+    },
+    YuhHuh:{
+        totalEmailsTrashed: 4,
+        totalSendersUnsubscribed: 1,
+        totalSendersRequested: 3,
+        hasErrors: false,
+        details: [
+            { email: "daily@newsletter.techcrunch.com", trashed: true, unsubscribed: true },
+            { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: true},
         ]
     },
 
