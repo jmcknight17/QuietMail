@@ -7,8 +7,8 @@ export const MOCK_EMAIL_RESPONSES = {
         totalSendersRequested: 3,
         hasErrors: true,
         details: [
-            { email: "daily@newsletter.techcrunch.com", trashed: true, unsubscribed: false, trashedError: "Failed to delete emails due to API error", unsubscribedError: "Failed to unsubscribe due to API error" },
-            { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: true},
+            { email: "daily@newsletter.techcrunch.com", trashed: true, unsubscribed: false},
+            { email: "events@newsletter.techcrunch.com", trashed: true, unsubscribed: false},
         ]
     },
     noFailures:{

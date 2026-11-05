@@ -138,8 +138,9 @@ export default function Dashboard() {
             const successfulUnsubscribes = new Set(
                 result.details.filter(d => d.unsubscribed && !d.unsubscribedError).map(d => d.email)
             );
-
-            //Change this message to take in the action of the user to not show unsub logic if they only trash emails. 
+            const failedUnsubscribes = new Set(
+                result.details.filter(d => !d.unsubscribed && d.unsubscribedError).map(d => d.email)
+            );
 
             const messageParts = [];
 
@@ -151,10 +152,13 @@ export default function Dashboard() {
 
             if (successfulUnsubscribes.size > 0) {
                 messageParts.push(`Unsubscribed from ${successfulUnsubscribes.size} sender${successfulUnsubscribes.size > 1 ? 's' : ''}`);
-            }else{
+            }else if(failedUnsubscribes.size > 0 ){ //This handles the case where all unsubscribe attempts failed
                 messageParts.push(`Failed to unsubscribe from senders`);
             }
-
+            //This handles the case where there are no unsub attempts. (Deletions)
+            if (messageParts.length === 1) {
+                return messageParts.toString();
+            }
             return messageParts.join(' - ');
     }
 
