@@ -21,7 +21,6 @@ export function ScanHero({ isScanning, progress, onStartScan }: ScanHeroProps) {
                 </div>
                 
                 <div className="w-full pt-4">
-                    {/* 2. We use the props passed from the parent to determine what to show */}
                     {!isScanning ? (
                         <Button
                             size="lg"

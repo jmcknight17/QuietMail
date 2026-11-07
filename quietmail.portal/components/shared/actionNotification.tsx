@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { SenderActionResult } from "@/app/dashboard/page";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 interface ActionNotificationProps {
@@ -43,8 +44,10 @@ export function ActionNotification({
 
     return (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 w-max max-w-[850px] px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
-            <div
-                className={`bg-foreground text-background shadow-2xl transition-all duration-200 border border-border/20 ${isExpanded ? 'rounded-2xl p-4' : 'rounded-full px-6 py-3'
+            <Collapsible
+                open={hasFailures && isExpanded}
+                onOpenChange={(open) => setIsExpanded(hasFailures ? open : false)}
+                className={`bg-foreground text-background shadow-2xl border border-border/20 transition-all duration-200 ease-out overflow-hidden ${hasFailures && isExpanded ? 'rounded-2xl p-4 w-[500px]' : 'rounded-2xl px-6 py-3'
                     }`}
             >
 
@@ -63,17 +66,19 @@ export function ActionNotification({
 
                     <div className="flex items-center gap-1 shrink-0">
                         {hasFailures && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 px-2 text-s text-background/80 hover:text-background hover:bg-background/20"
-                                onClick={() => setIsExpanded(!isExpanded)}
-                            >
-                                {isExpanded ? 'Hide' : <span className="text-red-400">
-                                    ({failures.length} issue{failures.length > 1 ? 's' : ''})
-                                </span>}
-                                {isExpanded ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
-                            </Button>
+                            <CollapsibleTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-s text-background/80 hover:text-background hover:bg-background/20"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                >
+                                    {isExpanded ? 'Hide' : <span className="text-red-400">
+                                        ({failures.length} issue{failures.length > 1 ? 's' : ''})
+                                    </span>}
+                                    {isExpanded ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
+                                </Button>
+                            </CollapsibleTrigger>
                         )}
 
                         <Button
@@ -87,8 +92,8 @@ export function ActionNotification({
                     </div>
                 </div>
 
-                {isExpanded && hasFailures && (
-                    <div className="mt-3 pt-3 border-t border-background/20 max-h-48 overflow-y-auto space-y-2 pr-1 text-xs">
+                <CollapsibleContent className="mt-3 pt-3 border-t border-background/20 space-y-2 text-xs transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
                         {failures.map((item, index) => (
                             <div key={index} className="bg-background/10 rounded p-2 text-background/90">
                                 <div className="font-semibold truncate">{item.email}</div>
@@ -105,8 +110,8 @@ export function ActionNotification({
                             </div>
                         ))}
                     </div>
-                )}
-            </div>
+                </CollapsibleContent>
+            </Collapsible>
         </div>
     );
 }
