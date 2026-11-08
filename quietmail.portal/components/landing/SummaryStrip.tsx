@@ -3,10 +3,8 @@
 import React from "react";
 import { Pillars} from "@/constants/summaryPillars";
 import {SummaryPillars} from "@/constants/summaryPillars";
-import { Icon } from "lucide-react";
 
 export function SummaryStrip() {
-
     const pillars: Pillars[] = SummaryPillars;
 
     return (
