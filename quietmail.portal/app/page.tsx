@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation"
 import {Hero} from "@/components/landing/hero"
 import {DashboardPreview} from "@/components/landing/dashboardPreview"
 import { SummaryStrip } from "@/components/landing/SummaryStrip"
+import { EditorialFeatures } from "@/components/landing/Capabilities"
+import { WorkflowSummary } from "@/components/landing/WorkflowSummary"
 
 export default function Home() {
   const router = useRouter();
@@ -25,6 +27,8 @@ export default function Home() {
       <Hero />
       <DashboardPreview />
       <SummaryStrip />
+      <EditorialFeatures />
+      <WorkflowSummary />
 
       {/* <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
