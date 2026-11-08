@@ -1,7 +1,6 @@
 Welcome to QuietMail! 
 This is a web app aimed to help you freshen up and clear out any unnecessary junk from your inbox. The goal is to give you full control through mass email deletion, easy unsubscribing, and detailed analytics, all while keeping your data security at the forefront.
 
-Why I'm Building This
 I first got this idea when I was scrolling through my personal inbox and noticed I had a staggering 37,000 unread emails. I knew this was an issue, but I didn't even know where to start.
 
 So, I went looking for existing solutions, and honestly, I wasn't impressed. I saw some aesthetic and functional apps, often at a low cost, but after digging a little deeper, I realized many of them were harvesting user data to sell to third parties.
