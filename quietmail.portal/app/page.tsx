@@ -7,6 +7,7 @@ import { DashboardHeader } from "@/components/shared/dashboardHeader"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import {Hero} from "@/components/landing/hero"
+import {DashboardPreview} from "@/components/landing/dashboardPreview"
 
 export default function Home() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function Home() {
     <div className="min-h-screen bg-transparent">
       <DashboardHeader />
       <Hero />
+      <DashboardPreview />
 
       {/* <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
