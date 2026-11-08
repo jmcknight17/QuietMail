@@ -153,10 +153,10 @@ export function ScanResultsTable({ scanResults, isTrashing, onTrash, onUnsubscri
                                     {expandedRows.has(result.domain) && (
                                         <TableRow key={`${result.domain}-details`}>
                                             <TableCell colSpan={5} className="p-0">
-                                                <div className="p-4 bg-muted/50 border-t border-border">
+                                                <div className="p-4 bg-card border-t border-border">
                                                     <Table>
                                                         <TableHeader>
-                                                            <TableRow>
+                                                            <TableRow className="bg-muted/50">
                                                                 <TableHead className="text-xs w-12"><span className="sr-only">Select</span></TableHead>
                                                                 <TableHead className="text-xs">Email Address</TableHead>
                                                                 <TableHead className="text-xs">Total</TableHead>

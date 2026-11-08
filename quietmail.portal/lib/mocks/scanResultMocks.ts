@@ -2,99 +2,40 @@ import { ScanResult } from '@/lib/types';
 
 export const MOCK_SCAN_RESULTS: ScanResult[] = [
   {
-    domain: 'newsletter.techcrunch.com',
+    domain: "newsletter.techcrunch.com",
     emailCount: 84,
     openedCount: 12,
-    openedPercent: 14.29,
+    openedPercent: 14.3,
     individualSenders: [
-      {
-        email: 'daily@newsletter.techcrunch.com',
-        emailCount: 60,
-        openedCount: 10,
-        openedPercent: 16.67,
-        isMailList: true,
-      },
-      {
-        email: 'events@newsletter.techcrunch.com',
-        emailCount: 24,
-        openedCount: 2,
-        openedPercent: 8.33,
-        isMailList: true,
-      },
+      { email: "daily@newsletter.techcrunch.com", emailCount: 50, openedCount: 5, openedPercent: 10.0, isMailList: true },
+      { email: "alerts@newsletter.techcrunch.com", emailCount: 34, openedCount: 7, openedPercent: 20.6, isMailList: false },
     ],
   },
   {
-    domain: 'marketing.ubereats.com',
+    domain: "marketing.ubereats.com",
     emailCount: 45,
     openedCount: 0,
-    openedPercent: 0,
+    openedPercent: 0.0,
     individualSenders: [
-      {
-        email: 'promos@marketing.ubereats.com',
-        emailCount: 30,
-        openedCount: 0,
-        openedPercent: 0,
-        isMailList: true,
-      },
-      {
-        email: 'offers@marketing.ubereats.com',
-        emailCount: 15,
-        openedCount: 0,
-        openedPercent: 0,
-        isMailList: true,
-      },
+      { email: "promos@marketing.ubereats.com", emailCount: 45, openedCount: 0, openedPercent: 0.0, isMailList: true },
     ],
   },
   {
-    domain: 'github.com',
+    domain: "github.com",
     emailCount: 120,
     openedCount: 96,
     openedPercent: 80.0,
     individualSenders: [
-      {
-        email: 'notifications@github.com',
-        emailCount: 120,
-        openedCount: 96,
-        openedPercent: 80.0,
-        isMailList: false,
-      },
+      { email: "notifications@github.com", emailCount: 120, openedCount: 96, openedPercent: 80.0, isMailList: false },
     ],
   },
   {
-    domain: 'updates.linkedin.com',
+    domain: "updates.linkedin.com",
     emailCount: 32,
     openedCount: 4,
     openedPercent: 12.5,
     individualSenders: [
-      {
-        email: 'jobalerts@updates.linkedin.com',
-        emailCount: 20,
-        openedCount: 3,
-        openedPercent: 15.0,
-        isMailList: true,
-      },
-      {
-        email: 'news@updates.linkedin.com',
-        emailCount: 12,
-        openedCount: 1,
-        openedPercent: 8.33,
-        isMailList: true,
-      },
-    ],
-  },
-  {
-    domain: 'mail.spotify.com',
-    emailCount: 18,
-    openedCount: 18,
-    openedPercent: 100.0,
-    individualSenders: [
-      {
-        email: 'no-reply@mail.spotify.com',
-        emailCount: 18,
-        openedCount: 18,
-        openedPercent: 100.0,
-        isMailList: false,
-      },
+      { email: "news@updates.linkedin.com", emailCount: 32, openedCount: 4, openedPercent: 12.5, isMailList: true },
     ],
   },
 ];

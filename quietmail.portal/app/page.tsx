@@ -6,6 +6,7 @@ import Image from "next/image"
 import { DashboardHeader } from "@/components/shared/dashboardHeader"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
+import {Hero} from "@/components/landing/hero"
 
 export default function Home() {
   const router = useRouter();
@@ -17,10 +18,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <DashboardHeader />
+      <Hero />
 
-      <section className="py-20 px-4">
+      {/* <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 text-balance">
             Understand Your Email Patterns
@@ -99,7 +101,7 @@ export default function Home() {
         <div className="container mx-auto max-w-4xl text-center">
           <p className="text-muted-foreground">Built with privacy and simplicity in mind. Your email analysis tool.</p>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

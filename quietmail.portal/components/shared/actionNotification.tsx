@@ -47,7 +47,7 @@ export function ActionNotification({
             <Collapsible
                 open={hasFailures && isExpanded}
                 onOpenChange={(open) => setIsExpanded(hasFailures ? open : false)}
-                className={`bg-foreground text-background shadow-2xl border border-border/20 transition-all duration-200 ease-out overflow-hidden ${hasFailures && isExpanded ? 'rounded-2xl p-4 w-[500px]' : 'rounded-2xl px-6 py-3'
+                className={`bg-primary/90 text-secondary-foreground shadow-2xl border border-border/20 transition-all duration-200 ease-out overflow-hidden ${hasFailures && isExpanded ? 'rounded-2xl p-4 w-[500px]' : 'rounded-2xl px-6 py-3'
                     }`}
             >
 

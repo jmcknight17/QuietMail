@@ -21,6 +21,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-30"
+          style={{
+            backgroundImage: `radial-gradient(var(--primary) 1px, transparent 1px)`,
+            backgroundSize: `24px 24px`,
+          }}
+        />
         <AuthProvider>
           {children}
         </AuthProvider>
