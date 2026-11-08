@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import {Hero} from "@/components/landing/hero"
 import {DashboardPreview} from "@/components/landing/dashboardPreview"
+import { SummaryStrip } from "@/components/landing/SummaryStrip"
 
 export default function Home() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function Home() {
       <DashboardHeader />
       <Hero />
       <DashboardPreview />
+      <SummaryStrip />
 
       {/* <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
