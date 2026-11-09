@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QuietMail ✉️⚡
 
-## Getting Started
+> High-performance, open-source inbox cleaner and analytics engine built with a zero-data storage architecture.
 
-First, run the development server:
+[![MIT License](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
+[![.NET 8.0](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+QuietMail connects securely to your Gmail account via Google OAuth 2.0 to scan, group, and clean low-value subscriptions and bulk emails in seconds.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🔒 Zero Data Storage Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+QuietMail is engineered strictly for privacy:
 
-## Learn More
+* **In-Memory Processing:** Email headers and metadata are scanned and grouped dynamically in memory.
+* **0 Bytes Stored:** No emails, metadata, tokens, or logs are ever written to a local or remote database.
+* **Direct Google OAuth:** Authentication occurs directly through official Google APIs. We never handle or see your password.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Tabler Icons
+* **Backend:** C# / .NET 8 Web API, Google Gmail REST API, Polly resilience policies
+* **Deployment:** Docker, Linux containers
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Quickstart
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Option A: Local Development
+
+#### Prerequisites
+* [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+* [Node.js 18+](https://nodejs.org/)
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/jmcknight17/quietmail.git](https://github.com/jmcknight17/quietmail.git)
+   cd quietmail

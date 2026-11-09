@@ -11,6 +11,8 @@ import {DashboardPreview} from "@/components/landing/dashboardPreview"
 import { SummaryStrip } from "@/components/landing/SummaryStrip"
 import { EditorialFeatures } from "@/components/landing/Capabilities"
 import { WorkflowSummary } from "@/components/landing/WorkflowSummary"
+import { Footer } from "@/components/landing/Footer"
+import {OpensourceSummary} from "@/components/landing/OpensourceSummary"
 
 export default function Home() {
   const router = useRouter();
@@ -29,6 +31,8 @@ export default function Home() {
       <SummaryStrip />
       <EditorialFeatures />
       <WorkflowSummary />
+      <OpensourceSummary />
+      <Footer />
 
       {/* <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
