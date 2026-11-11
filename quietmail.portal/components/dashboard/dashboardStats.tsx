@@ -1,104 +1,65 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { IconTrendingUp } from "@tabler/icons-react";
-import { ScanResult } from "@lib/types";
+"use client";
+
+import React from "react";
+import { ScanResult } from "@/lib/types";
 
 interface DashboardStatsProps {
-    scanResult: ScanResult[];
+  scanResult: ScanResult[];
 }
 
 export function DashboardStats({ scanResult }: DashboardStatsProps) {
-    const totalEmailsScanned = scanResult.reduce(
-        (acc, domain) => acc + domain.individualSenders.reduce((sAcc, sender) => sAcc + sender.emailCount, 0),
-        0
-    );
+  const totalEmails = scanResult.reduce((acc, domain) => acc + domain.emailCount, 0);
+  
+  const allSenders = scanResult.flatMap((domain) => domain.individualSenders);
+  const totalSenders = allSenders.length;
+  
+  const totalNewsletters = allSenders.filter((s) => s.isMailList).length;
+  
+  const avgOpenRate = totalSenders > 0
+    ? Math.round(allSenders.reduce((acc, s) => acc + s.openedPercent, 0) / totalSenders)
+    : 0;
 
-    const totalOpenedEmails = scanResult.reduce(
-        (acc, domain) => acc + domain.individualSenders.reduce((sAcc, sender) => sAcc + (sender.openedCount || 0), 0),
-        0
-    );
+  const stats = [
+    {
+      title: "Total Emails",
+      value: totalEmails.toLocaleString(),
+      subtext: "Scanned across all domains",
+    },
+    {
+      title: "Total Senders",
+      value: totalSenders.toLocaleString(),
+      subtext: "Unique inbox connections",
+    },
+    {
+      title: "Mailing Lists",
+      value: totalNewsletters.toLocaleString(),
+      subtext: "Newsletters & subscriptions",
+    },
+    {
+      title: "Avg. Open Rate",
+      value: `${avgOpenRate}%`,
+      subtext: "Overall engagement ratio",
+    },
+  ];
 
-    const openedRate = totalEmailsScanned > 0
-        ? (totalOpenedEmails / totalEmailsScanned) * 100
-        : 0;
-
-    
-    const suggestedUnsubscribableSenders = scanResult.reduce((acc, domain) => {
-        const domainUnsubCount = domain.individualSenders.filter(sender => sender.isMailList).length;
-        return acc + domainUnsubCount;
-    }, 0);
-
-    return (
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-           <Card>
-                <CardHeader>
-                    <CardDescription>Total Email Count</CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                        {totalEmailsScanned}
-                    </CardTitle>
-                    <CardAction>
-                        <Badge variant="outline">
-                            <IconTrendingUp />
-                            +12.5%
-                        </Badge>
-                    </CardAction>
-                </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                    <div className="line-clamp-1 flex gap-2 font-medium">
-                        Trending up this month <IconTrendingUp className="size-4" />
-                    </div>
-                    <div className="text-muted-foreground">
-                        Across active scanned senders
-                    </div>
-                </CardFooter>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardDescription>Open Rate</CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                        {openedRate.toFixed(2)}%
-                    </CardTitle>
-                    <CardAction>
-                        <Badge variant="outline">
-                            <IconTrendingUp />
-                            +12.5%
-                        </Badge>
-                    </CardAction>
-                </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                    <div className="line-clamp-1 flex gap-2 font-medium">
-                        Trending up this month <IconTrendingUp className="size-4" />
-                    </div>
-                    <div className="text-muted-foreground">
-                        Engagement ratio
-                    </div>
-                </CardFooter>
-            </Card>
-
-           <Card>
-                <CardHeader>
-                    <CardDescription>Number of Unsubscribable Senders</CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                        {suggestedUnsubscribableSenders}
-                    </CardTitle>
-                    <CardAction>
-                        <Badge variant="outline">
-                            <IconTrendingUp />
-                            +12.5%
-                        </Badge>
-                    </CardAction>
-                </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                    <div className="line-clamp-1 flex gap-2 font-medium">
-                        Trending up this month <IconTrendingUp className="size-4" />
-                    </div>
-                    <div className="text-muted-foreground">
-                        Senders with mailing lists
-                    </div>
-                </CardFooter>
-            </Card>
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xl p-6 shadow-xl space-y-2"
+        >
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+            {stat.title}
+          </p>
+          <div className="text-3xl font-bold tracking-tight text-foreground">
+            {stat.value}
+          </div>
+          <p className="text-xs text-muted-foreground/80 font-mono">
+            {stat.subtext}
+          </p>
         </div>
-    );
+      ))}
+    </div>
+  );
 }

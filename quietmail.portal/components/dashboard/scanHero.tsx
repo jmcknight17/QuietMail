@@ -41,7 +41,6 @@ export function ScanHero({ isScanning, progress, onStartScan }: ScanHeroProps) {
                 </div>
             </div>
             
-            {/* 3. The Ripple lives safely at the bottom of this isolated container */}
             <Ripple />
         </div>
     );
