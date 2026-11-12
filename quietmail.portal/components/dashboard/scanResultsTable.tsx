@@ -127,8 +127,6 @@ export function ScanResultsTable({
 
   return (
     <div className="space-y-4 relative pb-20">
-      <DashboardStats scanResult={scanResults} />
-
       <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xl shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-border/60 bg-card/40 flex items-center justify-between gap-4">
           <div className="flex items-center space-x-3">

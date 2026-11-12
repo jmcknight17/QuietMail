@@ -3,9 +3,6 @@ import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { startScan } from '@/lib/scanService';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Mail } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
 import { trashEmailsFromSenders, unsubscribeFromSender, unsubscribeAndTrashEmailsFromSenders } from "@/lib/emailHandlingService";
@@ -14,6 +11,8 @@ import { DashboardHeader } from "@/components/shared/dashboardHeader";
 import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
 import { ActionNotification } from "@/components/shared/actionNotification";
 import { useAuth } from '@/context/AuthContext';
+import { DashboardStats } from "@/components/dashboard/dashboardStats";
+import { MOCK_SCAN_RESULTS } from "@lib/mocks/scanResultMocks";
 
 export interface UserProfile {
     email: string;
@@ -52,6 +51,9 @@ export default function Dashboard() {
     const [scanResults, setScanResults] = useState<ScanResult[]>([]);
     const [error, setError] = useState<string>('');
     const [progress, setProgress] = useState<number>(0);
+    const [scanCompleted, setScanCompleted] = useState<boolean>(false);
+
+    const displayResults = scanCompleted ? scanResults : MOCK_SCAN_RESULTS;
 
     const handleUnsubscribe = async (senderEmails: string[]) => {
         if (!senderEmails || senderEmails.length === 0) return;
@@ -87,6 +89,7 @@ export default function Dashboard() {
             (results) => {
                 setScanResults(results);
                 setIsScanning(false);
+                setScanCompleted(true);
             },
             (errorMessage) => {
                 setError(errorMessage);
@@ -104,9 +107,6 @@ export default function Dashboard() {
             const successfulEmails = new Set(
                 result.details.filter(d => d.trashed).map(d => d.email)
             );
-
-            console.log('Successful emails trashed:', successfulEmails);
-            
 
             setScanResults(prevResults => {
                 return prevResults.map(domainResult => {
@@ -133,33 +133,33 @@ export default function Dashboard() {
 
     const buildNotificationMessage = (result: BatchedSenderActionResult): string => {
         const successfulEmails = new Set(
-                result.details.filter(d => d.trashed).map(d => d.email)
-            );
-            const successfulUnsubscribes = new Set(
-                result.details.filter(d => d.unsubscribed && !d.unsubscribedError).map(d => d.email)
-            );
-            const failedUnsubscribes = new Set(
-                result.details.filter(d => !d.unsubscribed && d.unsubscribedError).map(d => d.email)
-            );
+            result.details.filter(d => d.trashed).map(d => d.email)
+        );
+        const successfulUnsubscribes = new Set(
+            result.details.filter(d => d.unsubscribed && !d.unsubscribedError).map(d => d.email)
+        );
+        const failedUnsubscribes = new Set(
+            result.details.filter(d => !d.unsubscribed && d.unsubscribedError).map(d => d.email)
+        );
 
-            const messageParts = [];
+        const messageParts = [];
 
-            if (successfulEmails.size > 0) {
-                messageParts.push(`Successfully trashed ${result.totalEmailsTrashed} email${result.totalEmailsTrashed > 1 ? 's' : ''}`);
-            }else{
-                messageParts.push(`Failed to trash emails`);
-            }
+        if (successfulEmails.size > 0) {
+            messageParts.push(`Successfully trashed ${result.totalEmailsTrashed} email${result.totalEmailsTrashed > 1 ? 's' : ''}`);
+        } else {
+            messageParts.push(`Failed to trash emails`);
+        }
 
-            if (successfulUnsubscribes.size > 0) {
-                messageParts.push(`Unsubscribed from ${successfulUnsubscribes.size} sender${successfulUnsubscribes.size > 1 ? 's' : ''}`);
-            }else if(failedUnsubscribes.size > 0 ){ //This handles the case where all unsubscribe attempts failed
-                messageParts.push(`Failed to unsubscribe from senders`);
-            }
-            //This handles the case where there are no unsub attempts. (Deletions)
-            if (messageParts.length === 1) {
-                return messageParts.toString();
-            }
-            return messageParts.join(' - ');
+        if (successfulUnsubscribes.size > 0) {
+            messageParts.push(`Unsubscribed from ${successfulUnsubscribes.size} sender${successfulUnsubscribes.size > 1 ? 's' : ''}`);
+        } else if (failedUnsubscribes.size > 0) {
+            messageParts.push(`Failed to unsubscribe from senders`);
+        }
+
+        if (messageParts.length === 1) {
+            return messageParts.toString();
+        }
+        return messageParts.join(' - ');
     }
 
     const handleUnsubscribeAndTrash = async (senderEmails: string[]) => {
@@ -199,7 +199,6 @@ export default function Dashboard() {
         }
     }
 
-
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -210,8 +209,6 @@ export default function Dashboard() {
             </div>
         );
     }
-
-
 
     return (
         <div className="min-h-screen bg-background relative pb-24">
@@ -224,62 +221,29 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {scanResults.length === 0 ? (
-                    <ScanHero
-                        isScanning={isScanning}
-                        progress={progress}
-                        onStartScan={handleStartScan}
-                    />
-                ) : (
-                    <Card className="border-border bg-card">
-                        <CardHeader>
-                            <CardTitle className="text-foreground">Email Analysis</CardTitle>
-                            <CardDescription className="text-muted-foreground">
-                                Perform a comprehensive scan of your inbox to analyze sender patterns and email engagement
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div>
-                                <Button
-                                    onClick={handleStartScan}
-                                    disabled={isScanning || isTrashing}
-                                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                                >
-                                    {isScanning ? 'Analyzing...' : 'Rescan Inbox'}
-                                </Button>
+                <ScanHero isScanning={isScanning} onStartScan={handleStartScan} progress={progress} />
+
+                <div className="relative mt-8">
+                    {!scanCompleted && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/20 p-6 rounded-2xl">
+                            <div className="max-w-sm p-6 rounded-2xl border border-border/80 bg-card shadow-2xl text-center space-y-3">
+                                <h3 className="font-semibold text-lg text-foreground">Inbox Data Locked</h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Perform an in-memory deep scan above to analyze sender engagement and unlock interactive cleanup tools.
+                                </p>
                             </div>
+                        </div>
+                    )}
 
-                            {isScanning && (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-sm text-muted-foreground">Analyzing your emails...</p>
-                                        <span className="text-sm font-medium text-foreground">{progress}%</span>
-                                    </div>
-                                    <Progress value={progress} className="h-2" />
-                                </div>
-                            )}
+                    <div className={`space-y-6 transition-all duration-500 ${!scanCompleted ? "filter blur-[2px] pointer-events-none select-none opacity-80" : ""}`}>
+                        <DashboardStats scanResult={displayResults} />
 
-                            {scanResults.length > 0 && (
-                                <ScanResultsTable
-                                    scanResults={scanResults}
-                                    isTrashing={isTrashing}
-                                    onTrash={handleTrashSenders}
-                                    onUnsubscribe={handleUnsubscribe}
-                                    onUnsubscribeAndTrash={handleUnsubscribeAndTrash}
-                                    isNotificationVisible={isNotificationVisible}
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                        <ScanResultsTable isNotificationVisible={isNotificationVisible} isTrashing={isTrashing} onTrash={handleTrashSenders} onUnsubscribe={handleUnsubscribe} onUnsubscribeAndTrash={handleUnsubscribeAndTrash} scanResults={displayResults} />
+                    </div>
+                </div>
             </div>
 
-            <ActionNotification
-                isVisible={isNotificationVisible}
-                message={notificationMessage}
-                notificationDetails={notificationDetails}
-                onClose={() => setIsNotificationVisible(false)}
-            />
+            <ActionNotification isVisible={isNotificationVisible} message={notificationMessage} notificationDetails={notificationDetails} onClose={() => setIsNotificationVisible(false)} />
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Ripple } from '@/components/ui/ripple';
+
 
 interface ScanHeroProps {
     isScanning: boolean;
@@ -11,8 +11,8 @@ interface ScanHeroProps {
 
 export function ScanHero({ isScanning, progress, onStartScan }: ScanHeroProps) {
     return (
-        <div className="relative flex min-h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border bg-card/50 shadow-sm mt-8">
-            <div className="z-10 flex flex-col items-center space-y-6 text-center max-w-md p-6 bg-background/80 backdrop-blur-md rounded-2xl border shadow-lg">
+        <div className="flex w-full flex-col items-center border-transparent mt-8">
+            <div className="z-10 flex-col items-center space-y-6 text-center max-w-md p-6 rounded-2xl border">
                 <div className="space-y-2">
                     <h2 className="text-3xl font-bold tracking-tight">Inbox Analysis</h2>
                     <p className="text-muted-foreground text-sm">
@@ -41,6 +41,5 @@ export function ScanHero({ isScanning, progress, onStartScan }: ScanHeroProps) {
                 </div>
             </div>
             
-            <Ripple />
         </div>
     );
