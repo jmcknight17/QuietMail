@@ -1,9 +1,10 @@
 ﻿'use client';
 import React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { startScan } from '@/lib/scanService';
-import { Mail } from 'lucide-react';
+import { Mail, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ScanResult } from '@/lib/types';
 import { trashEmailsFromSenders, unsubscribeFromSender, unsubscribeAndTrashEmailsFromSenders } from "@/lib/emailHandlingService";
 import { ScanHero } from "@/components/dashboard/scanHero";
@@ -12,7 +13,7 @@ import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
 import { ActionNotification } from "@/components/shared/actionNotification";
 import { useAuth } from '@/context/AuthContext';
 import { DashboardStats } from "@/components/dashboard/dashboardStats";
-import { MOCK_SCAN_RESULTS } from "@lib/mocks/scanResultMocks";
+import { MOCK_SCAN_RESULTS } from "@/lib/mocks/scanResultMocks";
 
 export interface UserProfile {
     email: string;
@@ -203,7 +204,7 @@ export default function Dashboard() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
+                    <Mail className="h-12 w-12 text-primary mx-auto mb-4"/>
                     <p className="text-muted-foreground">Loading your dashboard...</p>
                 </div>
             </div>
@@ -212,7 +213,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-background relative pb-24">
-            <DashboardHeader />
+            <DashboardHeader/>
 
             <div className="container mx-auto p-4 md:p-8 max-w-6xl">
                 {error && (
@@ -221,29 +222,44 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                <ScanHero isScanning={isScanning} onStartScan={handleStartScan} progress={progress} />
+                <ScanHero isScanning={isScanning} onStartScan={handleStartScan} progress={progress}/>
 
                 <div className="relative mt-8">
                     {!scanCompleted && (
                         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/20 p-6 rounded-2xl">
-                            <div className="max-w-sm p-6 rounded-2xl border border-border/80 bg-card shadow-2xl text-center space-y-3">
-                                <h3 className="font-semibold text-lg text-foreground">Inbox Data Locked</h3>
-                                <p className="text-xs text-muted-foreground">
-                                    Perform an in-memory deep scan above to analyze sender engagement and unlock interactive cleanup tools.
-                                </p>
+                            <div className="max-w-sm p-6 rounded-2xl border border-border/80 bg-card shadow-2xl text-center space-y-4">
+                                <div className="mx-auto w-12 h-12 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-center text-amber-400">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <h3 className="font-semibold text-lg text-foreground">Inbox Data Locked</h3>
+                                    <p className="text-xs text-muted-foreground">
+                                        Perform an in-memory scan above to unlock summary cards and sender management controls.
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={handleStartScan}
+                                    disabled={isScanning}
+                                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold shadow-lg shadow-emerald-500/20 gap-2 rounded-xl"
+                                >
+                                    <Zap className="h-4 w-4 fill-current" />
+                                    {isScanning ? 'Scanning...' : 'Start In-Memory Scan'}
+                                </Button>
                             </div>
                         </div>
                     )}
 
-                    <div className={`space-y-6 transition-all duration-500 ${!scanCompleted ? "filter blur-[2px] pointer-events-none select-none opacity-80" : ""}`}>
-                        <DashboardStats scanResult={displayResults} />
+                    <div className={`space-y-6 transition-all duration-500 ${!scanCompleted ? "filter blur-[1px] pointer-events-none select-none opacity-80" : ""}`}>
+                        <DashboardStats scanResult={displayResults}/>
 
-                        <ScanResultsTable isNotificationVisible={isNotificationVisible} isTrashing={isTrashing} onTrash={handleTrashSenders} onUnsubscribe={handleUnsubscribe} onUnsubscribeAndTrash={handleUnsubscribeAndTrash} scanResults={displayResults} />
+                        <ScanResultsTable isNotificationVisible={isNotificationVisible} isTrashing={isTrashing} onTrash={handleTrashSenders} onUnsubscribe={handleUnsubscribe} onUnsubscribeAndTrash={handleUnsubscribeAndTrash} scanResults={displayResults}/>
                     </div>
                 </div>
             </div>
 
-            <ActionNotification isVisible={isNotificationVisible} message={notificationMessage} notificationDetails={notificationDetails} onClose={() => setIsNotificationVisible(false)} />
+            <ActionNotification isVisible={isNotificationVisible} message={notificationMessage} notificationDetails={notificationDetails} onClose={() => setIsNotificationVisible(false)}/>
         </div>
     );
 }
