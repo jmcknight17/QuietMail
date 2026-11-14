@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, X, Ban } from 'lucide-react';
-import { ScanResult } from '@/lib/types';
 
 export function SelectionActionBar({
     scanResults,
@@ -9,7 +8,6 @@ export function SelectionActionBar({
     isTrashing,
     onClearSelection,
     onTrash,
-    onUnsubscribe,
     onUnsubscribeAndTrash
 }: SelectionActionBarProps) {
     if (selectedEmails.size === 0) return null;

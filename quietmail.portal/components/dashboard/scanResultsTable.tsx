@@ -7,14 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Newspaper, Mail, AlertCircle, Filter } from "lucide-react";
 import { ScanResult } from "@/lib/types";
-import { DashboardStats } from "@/components/dashboard/dashboardStats";
 import { SelectionActionBar } from "./selectionActionBar";
 
 interface ScanResultsTableProps {
   scanResults: ScanResult[];
   isTrashing: boolean;
   onTrash: (senderEmails: string[]) => void;
-  onUnsubscribe: (senderEmails: string[]) => void;
   onUnsubscribeAndTrash: (senderEmails: string[]) => void;
   isNotificationVisible: boolean;
 }
@@ -23,7 +21,6 @@ export function ScanResultsTable({
   scanResults,
   isTrashing,
   onTrash,
-  onUnsubscribe,
   onUnsubscribeAndTrash,
   isNotificationVisible,
 }: ScanResultsTableProps) {
@@ -361,7 +358,6 @@ export function ScanResultsTable({
           isTrashing={isTrashing}
           onClearSelection={() => setSelectedIndividualSenders(new Set())}
           onTrash={onTrash}
-          onUnsubscribe={onUnsubscribe}
           onUnsubscribeAndTrash={onUnsubscribeAndTrash}
         />
       )}

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { startScan } from '@/lib/scanService';
 import { Mail } from 'lucide-react';
 import { ScanResult } from '@/lib/types';
-import { trashEmailsFromSenders, unsubscribeFromSender, unsubscribeAndTrashEmailsFromSenders } from "@/lib/emailHandlingService";
+import { trashEmailsFromSenders, unsubscribeAndTrashEmailsFromSenders } from "@/lib/emailHandlingService";
 import { ScanHero } from "@/components/dashboard/scanHero";
 import { DashboardHeader } from "@/components/shared/dashboardHeader";
 import { ScanResultsTable } from "@/components/dashboard/scanResultsTable";
@@ -54,28 +54,6 @@ export default function Dashboard() {
     const [scanCompleted, setScanCompleted] = useState<boolean>(false);
 
     const displayResults = scanCompleted ? scanResults : MOCK_SCAN_RESULTS;
-
-    const handleUnsubscribe = async (senderEmails: string[]) => {
-        if (!senderEmails || senderEmails.length === 0) return;
-
-        setIsTrashing(true);
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            setError('User not authenticated.');
-            setIsTrashing(false);
-            return;
-        }
-        try {
-            await unsubscribeFromSender(token, senderEmails);
-            setNotificationMessage(`Successfully trashed from ${senderEmails.length} sender(s)!`);
-            setIsNotificationVisible(true);
-            setError('');
-        } catch (err: any) {
-            setError(`Failed to unsubscribe: ${err.message || 'Unknown error'}`);
-        } finally {
-            setIsTrashing(false);
-        }
-    }
 
     const handleStartScan = useCallback(() => {
         setIsScanning(true);
@@ -238,7 +216,7 @@ export default function Dashboard() {
                     <div className={`space-y-6 transition-all duration-500 ${!scanCompleted ? "filter blur-[2px] pointer-events-none select-none opacity-80" : ""}`}>
                         <DashboardStats scanResult={displayResults} />
 
-                        <ScanResultsTable isNotificationVisible={isNotificationVisible} isTrashing={isTrashing} onTrash={handleTrashSenders} onUnsubscribe={handleUnsubscribe} onUnsubscribeAndTrash={handleUnsubscribeAndTrash} scanResults={displayResults} />
+                        <ScanResultsTable isNotificationVisible={isNotificationVisible} isTrashing={isTrashing} onTrash={handleTrashSenders} onUnsubscribeAndTrash={handleUnsubscribeAndTrash} scanResults={displayResults} />
                     </div>
                 </div>
             </div>
